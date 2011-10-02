@@ -1,7 +1,7 @@
 package com.coolapps.savemyapps;
 
 /*
- * Copyright 2011 Franco Sabadini
+ * Copyright 2011 Franco Sabadini - fsabadi@gmail.com
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,10 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 	private final Activity context;
 	private final ArrayList<AppInfo> appsList;
 	
-	/* 
+	/** 
 	 * Static to save the reference to the outer class and to avoid access to
 	 * any members of the containing class
-	 **/
+	 */
 	static class ViewHolder {
 		public ImageView imageView;
 		public TextView textView;
@@ -50,12 +50,12 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 		this.appsList = appsList;
 	}
 	
-	/*
+	/**
 	 * Return a row view of the element in the positions given 
 	 * to be showed in a list view.
 	 * ViewHolder is used to increase the method performance 
 	 * and resource utilization.
-	 **/
+	 */
 	@Override
 	public View getView(int pos, View convertView, ViewGroup parent) {
 		// Get the info of the current app that is been displayed

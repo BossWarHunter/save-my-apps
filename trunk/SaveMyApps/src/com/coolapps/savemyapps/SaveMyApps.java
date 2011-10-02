@@ -1,7 +1,7 @@
 package com.coolapps.savemyapps;
 
 /*
- * Copyright 2011 Franco Sabadini
+ * Copyright 2011 Franco Sabadini - fsabadi@gmail.com
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,11 @@ package com.coolapps.savemyapps;
 **/
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.app.ListActivity;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CheckBox;
@@ -37,26 +40,15 @@ public class SaveMyApps extends ListActivity {
 		this.setListAdapter(new AppsListAdapter(this, this.getAllApps()));
 	}
 	
-	// TODO: get all apps from server and installed from market
 	private ArrayList<AppInfo> getAllApps() {
-		// Get the list of applications in the device
-        String[] installedApps = {"app1","app2"};
-        // Get the list of applications saved in the server
-        String[] savedApps = {"app3","app2", "app4"};
-        // Combine both lists to have the complete list of apps the user has
-        //String[] allApps = (String[]) Array.addAll(installedApps, savedApps);
-        
-        ArrayList<AppInfo> allApps = new ArrayList<AppInfo>();
-        AppInfo app1 = new AppInfo("app1", true);
-        AppInfo app2 = new AppInfo("app2", false);
-        AppInfo app3 = new AppInfo("app3", true);
-        allApps.add(app1);
-        allApps.add(app2);
-        allApps.add(app3);
+		// Get the list of applications installed on the device
+        ArrayList<AppInfo> allApps = getInstalledApps(false);
+        //TODO: get the saved apps also and merge it with the installed apps
         return allApps;
 	}
 	
-	// TODO: This function will display a context menu with the options to save, unsave or install app
+	// TODO: This function will display a context menu with the options to save, 
+	// unsave or install app
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		//super.onListItemClick(l, v, position, id);
@@ -91,6 +83,31 @@ public class SaveMyApps extends ListActivity {
 			}
 		}
 		return checkedApps;
+	}
+	
+	/**
+	 * Returns all the apps actually installed on the device, 
+	 * with the option to choose the system packages or not.
+	 */
+	private ArrayList<AppInfo> getInstalledApps(boolean getSysPackages) {
+	    ArrayList<AppInfo> installedApps = new ArrayList<AppInfo>();        
+	    //List<PackageInfo> packs = getPackageManager().getInstalledPackages(0);
+	    List<ApplicationInfo> packs = getPackageManager().getInstalledApplications(0);
+	    for (int i=0; i<packs.size(); i++) {
+	    	ApplicationInfo pack = packs.get(i);
+	        /*if ((!getSysPackages) && (pack.versionName == null)) {
+	            continue ;
+	        }*/
+	        //String appName = pack.applicationInfo.loadLabel(getPackageManager()).toString();
+	    	String appName = pack.loadLabel(getPackageManager()).toString();
+	        //newInfo.pname = p.packageName;
+	        //newInfo.versionName = p.versionName;
+	        //newInfo.versionCode = p.versionCode;
+	        //newInfo.icon = p.applicationInfo.loadIcon(getPackageManager());
+	        AppInfo app = new AppInfo(appName, false);
+	        installedApps.add(app);
+	    }
+	    return installedApps; 
 	}
 	
 	// TODO: check if I can use the code down here which has a better performance
