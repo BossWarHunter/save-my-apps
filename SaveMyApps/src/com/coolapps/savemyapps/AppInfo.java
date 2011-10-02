@@ -1,7 +1,7 @@
 package com.coolapps.savemyapps;
 
 /*
- * Copyright 2011 Franco Sabadini
+ * Copyright 2011 Franco Sabadini - fsabadi@gmail.com
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package com.coolapps.savemyapps;
 public class AppInfo {
 
 	private String name;
+	// TODO: add set and get for pacckageName
+	private String packageName;
 	private boolean saved;
 	private boolean selected;
 	
@@ -28,8 +30,16 @@ public class AppInfo {
 		this.selected = false;
 	}
 	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
 	public String getName() {
 		return this.name;
+	}
+	
+	public void setSaved(boolean saved) {
+		this.saved = saved;
 	}
 	
 	public boolean isSaved() {
