@@ -19,9 +19,13 @@ package com.coolapps.savemyapps;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ListActivity;
+import android.content.DialogInterface;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CheckBox;
@@ -31,13 +35,48 @@ import android.widget.TextView;
 
 public class SaveMyApps extends ListActivity {
     
+	private Account chosenAccount;
+	private final int ACCOUNTS_DIALOG = 1;
+	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // Set the view assigned to this activity
         this.setContentView(R.layout.apps_list);
+        
+        // TODO: put this somewhere else - START
+        // Show the dialog to choose the google account to sync with
+        showDialog(ACCOUNTS_DIALOG);
+        // TODO: put this somewhere else - END
+        // TODO: add a progress dialog to show while the apps are loaded
+        
         // Set the adapter to fill the list
 		this.setListAdapter(new AppsListAdapter(this, this.getAllApps()));
+	}
+	
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+			//Create the accounts dialog so the user chooses which account to sync with
+			case ACCOUNTS_DIALOG:
+	    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	    		builder.setTitle("Select a Google account");
+	    		final AccountManager accountManager = AccountManager.get(this);
+	    		final Account[] accounts = accountManager.getAccountsByType("com.google");
+	    		final int accountsNun = accounts.length;
+	    		String[] accountNames = new String[accountsNun];
+	    		for (int i = 0; i < accountsNun; i++) {
+	    			accountNames[i] = accounts[i].name;
+	    		}
+	    		builder.setItems(accountNames, new DialogInterface.OnClickListener() {
+	    			public void onClick(DialogInterface dialog, int which) {
+	    				chosenAccount = accounts[which];
+	    			}
+	    		});
+	    		return builder.create();
+	    	// TODO: add a progress dialog to be shiowened while loading the apps	
+		}
+		return null;
 	}
 	
 	private ArrayList<AppInfo> getAllApps() {
@@ -61,6 +100,7 @@ public class SaveMyApps extends ListActivity {
 	
 	public void saveApps(View v) {
 		ArrayList<CharSequence> appsToSave = getCheckedApps();
+		
 		// TODO: verify if the app is saved in the server and if not save it
 	}
 
@@ -70,6 +110,9 @@ public class SaveMyApps extends ListActivity {
 		System.out.println();
 	}
 	
+	/**
+	 * Returns all the apps that were chosen by the user (checkboxs are checked).
+	 * */
 	private ArrayList<CharSequence> getCheckedApps() {
 		ListView listView = this.getListView();
 		ArrayList<CharSequence> checkedApps = new ArrayList<CharSequence>();
@@ -104,7 +147,8 @@ public class SaveMyApps extends ListActivity {
 	        //newInfo.versionName = p.versionName;
 	        //newInfo.versionCode = p.versionCode;
 	        //newInfo.icon = p.applicationInfo.loadIcon(getPackageManager());
-	        AppInfo app = new AppInfo(appName, false);
+	        AppInfo app = new AppInfo(appName);
+	        app.setInstalled(true);
 	        installedApps.add(app);
 	    }
 	    return installedApps; 

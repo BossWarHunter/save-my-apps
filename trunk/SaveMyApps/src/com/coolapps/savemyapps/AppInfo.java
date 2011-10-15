@@ -22,11 +22,11 @@ public class AppInfo {
 	// TODO: add set and get for pacckageName
 	private String packageName;
 	private boolean saved;
+	private boolean installed;
 	private boolean selected;
 	
-	public AppInfo(String name, boolean saved) {
+	public AppInfo(String name) {
 		this.name = name;
-		this.saved = saved;
 		this.selected = false;
 	}
 	
@@ -46,6 +46,14 @@ public class AppInfo {
 		return this.saved;
 	}
 	
+	public void setInstalled(boolean installed) {
+		this.installed = installed;
+	}
+
+	public boolean isInstalled() {
+		return this.installed;
+	}
+	
 	public void setSelected(boolean selected) {
 		this.selected = selected;
 	}
@@ -53,5 +61,5 @@ public class AppInfo {
 	public boolean isSelected() {
 		return this.selected;
 	}
-	
+
 }
