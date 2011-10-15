@@ -92,7 +92,7 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 		// ViewHolder will buffer the assess to the individual fields of the row layout
 		final ViewHolder viewHolder = new ViewHolder();
 		viewHolder.textView = (TextView) rowView.findViewById(R.id.label);
-		viewHolder.imageView = (ImageView) rowView.findViewById(R.id.icon);
+		viewHolder.imageView = (ImageView) rowView.findViewById(R.id.installed_icon);
 		viewHolder.checkBox = (CheckBox) rowView.findViewById(R.id.check); 
 		viewHolder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			
