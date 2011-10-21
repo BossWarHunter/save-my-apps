@@ -16,17 +16,33 @@ package com.coolapps.savemyapps;
  * limitations under the License.
 **/
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.api.client.extensions.android2.AndroidHttp;
+import com.google.api.client.googleapis.auth.oauth2.draft10.GoogleAccessProtectedResource;
+import com.google.api.client.googleapis.extensions.android2.auth.GoogleAccountManager;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.HttpResponseException;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.api.services.tasks.model.Task;
+import com.google.api.services.tasks.Tasks;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ListView;
@@ -35,21 +51,80 @@ import android.widget.TextView;
 
 public class SaveMyApps extends ListActivity {
     
-	private Account chosenAccount;
-	private final int ACCOUNTS_DIALOG = 1;
+	private GoogleAccountManager accountManager;
+	private static final int ACCOUNTS_DIALOG = 0;
+	private static final int REQUEST_AUTHENTICATE = 0;
+	private static final String AUTH_TOKEN_TYPE = "Manage your tasks";
+	private static final String PREF = "MyPrefs";
+	private GoogleAccessProtectedResource accessProtectedResource = new GoogleAccessProtectedResource(null);
+	private final HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
+	private Tasks tasksService;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // Set the view assigned to this activity
         this.setContentView(R.layout.apps_list);
-        
+        accountManager = new GoogleAccountManager(this);
+        tasksService = new Tasks(httpTransport, accessProtectedResource, new JacksonFactory());
+        // service.setKey(ClientCredentials.KEY);
+        tasksService.setApplicationName("CoolApps-SaveMyApps/1.0");
         // TODO: put this somewhere else - START
         // Show the dialog to choose the google account to sync with
-        showDialog(ACCOUNTS_DIALOG);
         // TODO: put this somewhere else - END
         // TODO: add a progress dialog to show while the apps are loaded
         
+        //tasksManager =  new TasksManager();
+        //tasksManager.authorizeConnectionToAPI(accountManager, this);
+        gotAccount(false);
+	}
+	
+	private void gotAccount(boolean tokenExpired) {
+		SharedPreferences settings = getSharedPreferences(PREF, 0);
+	    String accountName = settings.getString("accountName", null);
+	    Account account = accountManager.getAccountByName(accountName);
+	    // If the account was chosen previously
+	    if (account != null) {
+	    	if (tokenExpired) {
+	    		accountManager.invalidateAuthToken(accessProtectedResource.getAccessToken());
+	    		accessProtectedResource.setAccessToken(null);
+	    	}
+	    	gotAccount(account);
+	    	return;
+	    }
+	    showDialog(ACCOUNTS_DIALOG);
+	}
+
+	private void gotAccount(final Account account) {
+		SharedPreferences settings = getSharedPreferences(PREF, 0);
+	    SharedPreferences.Editor editor = settings.edit();
+	    editor.putString("accountName", account.name);
+	    editor.commit();
+	    accountManager.manager.getAuthToken(account, AUTH_TOKEN_TYPE, true, 
+	    		new AccountManagerCallback<Bundle>() {
+
+	          public void run(AccountManagerFuture<Bundle> future) {
+	            try {
+	              Bundle bundle = future.getResult();
+	              if (bundle.containsKey(AccountManager.KEY_INTENT)) {
+	            	  Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
+	            	  intent.setFlags(intent.getFlags() & ~Intent.FLAG_ACTIVITY_NEW_TASK);
+	            	  startActivityForResult(intent, REQUEST_AUTHENTICATE);
+	              } else if (bundle.containsKey(AccountManager.KEY_AUTHTOKEN)) {
+	                accessProtectedResource.setAccessToken(bundle.getString(AccountManager.KEY_AUTHTOKEN));
+	                showAppsList();
+	              }
+	            } catch (Exception e) {
+	              //handleException(e);
+	            }
+	          }
+	        }, null);
+	}
+
+	/**
+	 * Load the apps list to the UI.
+	 * */
+	private void showAppsList() {
         // Set the adapter to fill the list
 		this.setListAdapter(new AppsListAdapter(this, this.getAllApps()));
 	}
@@ -61,8 +136,7 @@ public class SaveMyApps extends ListActivity {
 			case ACCOUNTS_DIALOG:
 	    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 	    		builder.setTitle("Select a Google account");
-	    		final AccountManager accountManager = AccountManager.get(this);
-	    		final Account[] accounts = accountManager.getAccountsByType("com.google");
+	    		final Account[] accounts = accountManager.getAccounts();
 	    		final int accountsNun = accounts.length;
 	    		String[] accountNames = new String[accountsNun];
 	    		for (int i = 0; i < accountsNun; i++) {
@@ -70,7 +144,7 @@ public class SaveMyApps extends ListActivity {
 	    		}
 	    		builder.setItems(accountNames, new DialogInterface.OnClickListener() {
 	    			public void onClick(DialogInterface dialog, int which) {
-	    				chosenAccount = accounts[which];
+	    				gotAccount(accounts[which]);
 	    			}
 	    		});
 	    		return builder.create();
@@ -79,53 +153,27 @@ public class SaveMyApps extends ListActivity {
 		return null;
 	}
 	
-	private ArrayList<AppInfo> getAllApps() {
-		// Get the list of applications installed on the device
-        ArrayList<AppInfo> allApps = getInstalledApps(false);
-        //TODO: get the saved apps also and merge it with the installed apps
-        return allApps;
-	}
-	
-	// TODO: This function will display a context menu with the options to save, 
-	// unsave or install app
-	@Override
-	protected void onListItemClick(ListView l, View v, int position, long id) {
-		//super.onListItemClick(l, v, position, id);
-		// Get the item that was clicked
-		//Object o = this.getListAdapter().getItem(position);
-		//String keyword = o.toString();
-		//Toast.makeText(this, "You selected: " + keyword, Toast.LENGTH_LONG)
-		//		.show();
-	}
-	
-	public void saveApps(View v) {
-		ArrayList<CharSequence> appsToSave = getCheckedApps();
-		
-		// TODO: verify if the app is saved in the server and if not save it
-	}
-
-	public void unsaveApps(View v) {
-		ArrayList<CharSequence> appsToUnsave = getCheckedApps();
-		//TODO: verify if the app is saved in the server and if it is unsave it
-		System.out.println();
-	}
-	
 	/**
-	 * Returns all the apps that were chosen by the user (checkboxs are checked).
+	 * Return a list of all the installed and saved apps.
 	 * */
-	private ArrayList<CharSequence> getCheckedApps() {
-		ListView listView = this.getListView();
-		ArrayList<CharSequence> checkedApps = new ArrayList<CharSequence>();
-		// Loop through all the apps list and get the ones that were checked
-		for (int i=0; i<listView.getChildCount(); i++) {
-			View appView = listView.getChildAt(i);
-			CheckBox appCheckBox = (CheckBox) appView.findViewById(R.id.check);
-			if (appCheckBox.isChecked()) {
-				CharSequence appName = ((TextView) appView.findViewById(R.id.label)).getText();
-				checkedApps.add(appName);
-			}
-		}
-		return checkedApps;
+	private ArrayList<AppInfo> getAllApps() {
+		// Get the list of apps installed on the device
+        ArrayList<AppInfo> allApps = getInstalledApps(false);
+        // Get the list of apps saved on the server
+        ArrayList<AppInfo> savedApps = getSavedApps();
+        // Merge the 2 list of apps
+        for (int i=0; i<savedApps.size(); i++) {
+        	AppInfo savedAppInfo = savedApps.get(i);
+        	int appIndex = allApps.indexOf(savedAppInfo);
+        	if (appIndex != -1) { // If the app is already installed
+        		AppInfo appInfo = allApps.get(appIndex);
+        		appInfo.setSaved(true);
+        	}
+        	else { // If the app is not installed
+        		allApps.add(savedAppInfo);
+        	}
+        }
+        return allApps;
 	}
 	
 	/**
@@ -134,7 +182,6 @@ public class SaveMyApps extends ListActivity {
 	 */
 	private ArrayList<AppInfo> getInstalledApps(boolean getSysPackages) {
 	    ArrayList<AppInfo> installedApps = new ArrayList<AppInfo>();        
-	    //List<PackageInfo> packs = getPackageManager().getInstalledPackages(0);
 	    List<ApplicationInfo> packs = getPackageManager().getInstalledApplications(0);
 	    for (int i=0; i<packs.size(); i++) {
 	    	ApplicationInfo pack = packs.get(i);
@@ -154,6 +201,76 @@ public class SaveMyApps extends ListActivity {
 	    return installedApps; 
 	}
 	
+	/**
+	 * Returns a list of all the apps saved on the server.
+	 * */
+	private ArrayList<AppInfo> getSavedApps() {
+		ArrayList<AppInfo> savedApps = new ArrayList<AppInfo>();
+		try {
+			List<Task> tasks = tasksService.tasks.list("@savemyapps-default").execute().getItems();
+			if (tasks != null) {
+				for (Task task : tasks) {
+					AppInfo appInfo = new AppInfo(task.getTitle());
+					appInfo.setSaved(true);
+					savedApps.add(appInfo);
+			    }
+			} 
+		} catch (IOException e) {
+			handleException(e);
+		}
+		return savedApps;
+	}
+	
+	private void handleException(Exception e) {
+		e.printStackTrace();
+	    if (e instanceof HttpResponseException) {
+	    	HttpResponse response = ((HttpResponseException) e).response;
+	    	int statusCode = response.statusCode;
+	    	try {
+	    		response.ignore();
+	    	} catch (IOException e1) {
+	    		e1.printStackTrace();
+	    	}
+	    	if (statusCode == 401) {
+	    		gotAccount(true);
+	    		return;
+	    	}
+	    }
+	    Log.e("SaveMyApps", e.getMessage(), e);
+	}
+	
+	public void saveApps(View v) {
+		ArrayList<CharSequence> appsToSave = getCheckedApps();
+		
+		// TODO: verify if the app is saved in the server and if not save it
+	}
+
+	public void unsaveApps(View v) {
+		ArrayList<CharSequence> appsToUnsave = getCheckedApps();
+		//TODO: verify if the app is saved in the server and if it is unsave it
+		System.out.println();
+	}
+
+	/**
+	 * Returns all the apps that were chosen by the user (checkboxs are checked).
+	 * */
+	private ArrayList<CharSequence> getCheckedApps() {
+		ListView listView = this.getListView();
+		ArrayList<CharSequence> checkedApps = new ArrayList<CharSequence>();
+		// Loop through all the apps list and get the ones that were checked
+		for (int i=0; i<listView.getChildCount(); i++) {
+			View appView = listView.getChildAt(i);
+			CheckBox appCheckBox = (CheckBox) appView.findViewById(R.id.check);
+			if (appCheckBox.isChecked()) {
+				CharSequence appName = ((TextView) appView.findViewById(R.id.label)).getText();
+				checkedApps.add(appName);
+			}
+		}
+		return checkedApps;
+	}
+		
+}
+	
 	// TODO: check if I can use the code down here which has a better performance
 /*	
 	private ArrayList<CharSequence> getCheckedApps() {
@@ -169,5 +286,17 @@ public class SaveMyApps extends ListActivity {
 		}
 		return checkedApps;
 	}
+
+// TODO: This function will display a context menu with the options to save, 
+	// unsave or install app
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		//super.onListItemClick(l, v, position, id);
+		// Get the item that was clicked
+		//Object o = this.getListAdapter().getItem(position);
+		//String keyword = o.toString();
+		//Toast.makeText(this, "You selected: " + keyword, Toast.LENGTH_LONG)
+		//		.show();
+	}
+
 */
-}
