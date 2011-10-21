@@ -27,6 +27,8 @@ public class AppInfo {
 	
 	public AppInfo(String name) {
 		this.name = name;
+		this.saved = false;
+		this.installed = false;
 		this.selected = false;
 	}
 	
@@ -60,6 +62,10 @@ public class AppInfo {
 	
 	public boolean isSelected() {
 		return this.selected;
+	}
+	
+	public boolean equals(Object o) {
+		return this.name.equals(((AppInfo)o).getName());
 	}
 
 }
