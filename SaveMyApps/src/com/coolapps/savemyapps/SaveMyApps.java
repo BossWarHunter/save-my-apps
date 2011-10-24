@@ -59,6 +59,9 @@ public class SaveMyApps extends ListActivity {
 	private GoogleAccessProtectedResource accessProtectedResource = new GoogleAccessProtectedResource(null);
 	private final HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
 	private Tasks tasksService;
+	private static final String API_KEY = "AIzaSyBSdg34QaV73dM0BnsRGDapnMPPEzuT22M";
+	private static final String DEFAULT_LIST = "@savemyapps-default";
+	
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -66,16 +69,10 @@ public class SaveMyApps extends ListActivity {
         // Set the view assigned to this activity
         this.setContentView(R.layout.apps_list);
         accountManager = new GoogleAccountManager(this);
+        // Create a new service to send and get data from google tasks
         tasksService = new Tasks(httpTransport, accessProtectedResource, new JacksonFactory());
-        // service.setKey(ClientCredentials.KEY);
+        tasksService.setKey(API_KEY);
         tasksService.setApplicationName("CoolApps-SaveMyApps/1.0");
-        // TODO: put this somewhere else - START
-        // Show the dialog to choose the google account to sync with
-        // TODO: put this somewhere else - END
-        // TODO: add a progress dialog to show while the apps are loaded
-        
-        //tasksManager =  new TasksManager();
-        //tasksManager.authorizeConnectionToAPI(accountManager, this);
         gotAccount(false);
 	}
 	
@@ -115,7 +112,7 @@ public class SaveMyApps extends ListActivity {
 	                showAppsList();
 	              }
 	            } catch (Exception e) {
-	              //handleException(e);
+	              handleException(e);
 	            }
 	          }
 	        }, null);
@@ -148,7 +145,7 @@ public class SaveMyApps extends ListActivity {
 	    			}
 	    		});
 	    		return builder.create();
-	    	// TODO: add a progress dialog to be shiowened while loading the apps	
+	    	// TODO: add a progress dialog to be showed while loading the apps list	
 		}
 		return null;
 	}
@@ -207,7 +204,7 @@ public class SaveMyApps extends ListActivity {
 	private ArrayList<AppInfo> getSavedApps() {
 		ArrayList<AppInfo> savedApps = new ArrayList<AppInfo>();
 		try {
-			List<Task> tasks = tasksService.tasks.list("@savemyapps-default").execute().getItems();
+			List<Task> tasks = tasksService.tasks.list(DEFAULT_LIST).execute().getItems();
 			if (tasks != null) {
 				for (Task task : tasks) {
 					AppInfo appInfo = new AppInfo(task.getTitle());
@@ -239,16 +236,43 @@ public class SaveMyApps extends ListActivity {
 	    Log.e("SaveMyApps", e.getMessage(), e);
 	}
 	
+	/**
+	 * Save the selected apps on the server, if they are not already there.
+	 * */
 	public void saveApps(View v) {
 		ArrayList<CharSequence> appsToSave = getCheckedApps();
-		
-		// TODO: verify if the app is saved in the server and if not save it
+		ArrayList<AppInfo> savedApps = getSavedApps();
+		for (int i=0; i < appsToSave.size(); i++) {
+			AppInfo app = new AppInfo((String)appsToSave.get(i));
+			if (!savedApps.contains(app)) { // If the app name is not saved on the server
+				try {
+					Task task = new Task();
+					task.setTitle(app.getName());
+					task.setNotes(app.getName());
+					tasksService.tasks.insert(DEFAULT_LIST, task).execute();
+				} catch (IOException e) {
+					handleException(e);
+				}
+			}
+		}
 	}
 
+	/**
+	 * Delete the selected apps from the server, if they r there.
+	 * */
 	public void unsaveApps(View v) {
 		ArrayList<CharSequence> appsToUnsave = getCheckedApps();
-		//TODO: verify if the app is saved in the server and if it is unsave it
-		System.out.println();
+		ArrayList<AppInfo> savedApps = getSavedApps();
+		for (int i=0; i < appsToUnsave.size(); i++) {
+			AppInfo app = new AppInfo((String)appsToUnsave.get(i));
+			if (savedApps.contains(app)) { // If the app name is saved on the server
+				try {
+					tasksService.tasks.delete(DEFAULT_LIST, app.getName()).execute();
+				} catch (IOException e) {
+					handleException(e);
+				}
+			}
+		}
 	}
 
 	/**
