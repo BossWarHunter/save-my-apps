@@ -39,7 +39,8 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 	 * any members of the containing class
 	 */
 	static class ViewHolder {
-		public ImageView imageView;
+		public ImageView imageViewInstalled;
+		public ImageView imageViewSaved;
 		public TextView textView;
 		public CheckBox checkBox;
 	}
@@ -77,14 +78,23 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 		// If the app is saved on the server then assign it the up_arrow image, 
 		// if not assign it the down_arrow image
 		if (app.isSaved()) {
-			viewHolder.imageView.setImageResource(R.drawable.up_arrow);
+			viewHolder.imageViewSaved.setImageResource(R.drawable.up_arrow);
 		}
 		else {
-			viewHolder.imageView.setImageResource(R.drawable.down_arrow);
+			viewHolder.imageViewSaved.setImageResource(R.drawable.down_arrow);
+		}
+		if (app.isInstalled()) {
+			viewHolder.imageViewInstalled.setImageResource(R.drawable.up_arrow);
+		}
+		else {
+			viewHolder.imageViewInstalled.setImageResource(R.drawable.down_arrow);
 		}
 		return rowView;
 	}
 	
+	/**
+	 * Create a row view linking the elements of the apps_list_item xml to a ViewHolder object.
+	 * */
 	private View createNewRowView(AppInfo app) {
 		// Inflate the xml row view (convert it to java code)
 		LayoutInflater inflater = context.getLayoutInflater();
@@ -92,15 +102,14 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 		// ViewHolder will buffer the assess to the individual fields of the row layout
 		final ViewHolder viewHolder = new ViewHolder();
 		viewHolder.textView = (TextView) rowView.findViewById(R.id.label);
-		viewHolder.imageView = (ImageView) rowView.findViewById(R.id.installed_icon);
+		viewHolder.imageViewInstalled = (ImageView) rowView.findViewById(R.id.installed_icon);
+		viewHolder.imageViewSaved = (ImageView) rowView.findViewById(R.id.saved_icon);
 		viewHolder.checkBox = (CheckBox) rowView.findViewById(R.id.check); 
 		viewHolder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-			
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				AppInfo app = (AppInfo) viewHolder.checkBox.getTag();
 				app.setSelected(buttonView.isChecked());
 			}
-		
 		});
 		viewHolder.checkBox.setTag(app);
 		rowView.setTag(viewHolder);
