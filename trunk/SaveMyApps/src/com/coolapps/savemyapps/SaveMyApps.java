@@ -19,6 +19,7 @@ package com.coolapps.savemyapps;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 import com.google.api.client.extensions.android2.AndroidHttp;
 import com.google.api.client.googleapis.auth.oauth2.draft10.GoogleAccessProtectedResource;
@@ -45,23 +46,20 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
-import android.widget.ListView;
-import android.widget.TextView;
 
 
 public class SaveMyApps extends ListActivity {
     
-	private GoogleAccountManager accountManager;
 	private static final int ACCOUNTS_DIALOG = 0;
-	private static final int REQUEST_AUTHENTICATE = 0;
+	private static final int REQUEST_AUTH = 0;
 	private static final String AUTH_TOKEN_TYPE = "Manage your tasks";
-	private static final String PREF = "MyPrefs";
-	private GoogleAccessProtectedResource accessProtectedResource = new GoogleAccessProtectedResource(null);
-	private final HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
-	private Tasks tasksService;
+	private static final String PREF = "SaveMyAppsPrefs";
 	private static final String API_KEY = "AIzaSyBSdg34QaV73dM0BnsRGDapnMPPEzuT22M";
 	private static final String DEFAULT_LIST = "@savemyapps-default";
-	
+	private GoogleAccountManager accountManager;
+	private final HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
+	private GoogleAccessProtectedResource accessProtectedResource = new GoogleAccessProtectedResource(null);
+	private Tasks tasksService;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,9 +68,14 @@ public class SaveMyApps extends ListActivity {
         this.setContentView(R.layout.apps_list);
         accountManager = new GoogleAccountManager(this);
         // Create a new service to send and get data from google tasks
-        tasksService = new Tasks(httpTransport, accessProtectedResource, new JacksonFactory());
-        tasksService.setKey(API_KEY);
-        tasksService.setApplicationName("CoolApps-SaveMyApps/1.0");
+        // TODO: uncomment this and try it with internet connection on to see if it still fails
+        //tasksService = new Tasks(httpTransport, accessProtectedResource, new JacksonFactory());
+        //tasksService.setKey(API_KEY);
+        //tasksService.setApplicationName("CoolApps-SaveMyApps/1.0");
+        
+        //TODO: check why the gotAccount is not working 
+        //showAppsList();
+        
         gotAccount(false);
 	}
 	
@@ -102,15 +105,20 @@ public class SaveMyApps extends ListActivity {
 
 	          public void run(AccountManagerFuture<Bundle> future) {
 	            try {
-	              Bundle bundle = future.getResult();
-	              if (bundle.containsKey(AccountManager.KEY_INTENT)) {
+	              // TODO: the exception appears when the bundle is created...why?
+	            	Bundle bundle = future.getResult();
+	              /*if (bundle.containsKey(AccountManager.KEY_INTENT)) {
 	            	  Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
 	            	  intent.setFlags(intent.getFlags() & ~Intent.FLAG_ACTIVITY_NEW_TASK);
-	            	  startActivityForResult(intent, REQUEST_AUTHENTICATE);
+	            	  startActivityForResult(intent, REQUEST_AUTH);
 	              } else if (bundle.containsKey(AccountManager.KEY_AUTHTOKEN)) {
 	                accessProtectedResource.setAccessToken(bundle.getString(AccountManager.KEY_AUTHTOKEN));
-	                showAppsList();
-	              }
+	                showAppsList(); // Load the apps list
+	              }*/
+	            	// TODO: remove this showAppsList call from here when I fix the exception problem
+	            	showAppsList(); 
+
+	              // TODO: find out what exception is this catching and why?
 	            } catch (Exception e) {
 	              handleException(e);
 	            }
@@ -119,11 +127,14 @@ public class SaveMyApps extends ListActivity {
 	}
 
 	/**
-	 * Load the apps list to the UI.
+	 * Set the list adapter for this activity and load the apps list to the UI.
 	 * */
 	private void showAppsList() {
+        AppsListAdapter listAdapter = new AppsListAdapter(this, getAllApps()); 
+        // Order the apps list according to their names
+        listAdapter.sort(new AppNameComparator());
         // Set the adapter to fill the list
-		this.setListAdapter(new AppsListAdapter(this, this.getAllApps()));
+		setListAdapter(listAdapter);
 	}
 	
 	@Override
@@ -155,9 +166,9 @@ public class SaveMyApps extends ListActivity {
 	 * */
 	private ArrayList<AppInfo> getAllApps() {
 		// Get the list of apps installed on the device
-        ArrayList<AppInfo> allApps = getInstalledApps(false);
-        // Get the list of apps saved on the server
-        ArrayList<AppInfo> savedApps = getSavedApps();
+		ArrayList<AppInfo> allApps = getInstalledApps();
+		// Get the list of apps saved on the server
+        /*ArrayList<AppInfo> savedApps = getSavedApps();
         // Merge the 2 list of apps
         for (int i=0; i<savedApps.size(); i++) {
         	AppInfo savedAppInfo = savedApps.get(i);
@@ -169,7 +180,7 @@ public class SaveMyApps extends ListActivity {
         	else { // If the app is not installed
         		allApps.add(savedAppInfo);
         	}
-        }
+        }*/
         return allApps;
 	}
 	
@@ -177,23 +188,20 @@ public class SaveMyApps extends ListActivity {
 	 * Returns all the apps actually installed on the device, 
 	 * with the option to choose the system packages or not.
 	 */
-	private ArrayList<AppInfo> getInstalledApps(boolean getSysPackages) {
-	    ArrayList<AppInfo> installedApps = new ArrayList<AppInfo>();        
-	    List<ApplicationInfo> packs = getPackageManager().getInstalledApplications(0);
-	    for (int i=0; i<packs.size(); i++) {
-	    	ApplicationInfo pack = packs.get(i);
-	        /*if ((!getSysPackages) && (pack.versionName == null)) {
-	            continue ;
-	        }*/
-	        //String appName = pack.applicationInfo.loadLabel(getPackageManager()).toString();
-	    	String appName = pack.loadLabel(getPackageManager()).toString();
-	        //newInfo.pname = p.packageName;
-	        //newInfo.versionName = p.versionName;
-	        //newInfo.versionCode = p.versionCode;
-	        //newInfo.icon = p.applicationInfo.loadIcon(getPackageManager());
-	        AppInfo app = new AppInfo(appName);
-	        app.setInstalled(true);
-	        installedApps.add(app);
+	private ArrayList<AppInfo> getInstalledApps() {
+		ArrayList<AppInfo> installedApps = new ArrayList<AppInfo>();        
+	    List<ApplicationInfo> appsList = getPackageManager().getInstalledApplications(0);
+	    for (int i=0; i<appsList.size(); i++) {
+	    	ApplicationInfo app = appsList.get(i);
+	        String appName = app.loadLabel(getPackageManager()).toString();
+	        // If the appName is a real app and not a package name
+	        if (!appName.contains(".")) {
+	        	// TODO: add package name?
+		        //newInfo.pname = p.packageName;
+		        AppInfo appInfo = new AppInfo(appName);
+		        appInfo.setInstalled(true);
+		        installedApps.add(appInfo);
+	        }
 	    }
 	    return installedApps; 
 	}
@@ -218,6 +226,8 @@ public class SaveMyApps extends ListActivity {
 		return savedApps;
 	}
 	
+	// TODO: add an error dialog that says 
+	// "the app could not connect to the server, please check your Internet connection"
 	private void handleException(Exception e) {
 		e.printStackTrace();
 	    if (e instanceof HttpResponseException) {
@@ -228,6 +238,7 @@ public class SaveMyApps extends ListActivity {
 	    	} catch (IOException e1) {
 	    		e1.printStackTrace();
 	    	}
+	    	// TODO: what is STATUS 401??
 	    	if (statusCode == 401) {
 	    		gotAccount(true);
 	    		return;
@@ -237,62 +248,70 @@ public class SaveMyApps extends ListActivity {
 	}
 	
 	/**
-	 * Save the selected apps on the server, if they are not already there.
+	 * Saves the selected apps on the server, if they are not already there.
+	 * 
+	 * @param view
 	 * */
-	public void saveApps(View v) {
-		ArrayList<CharSequence> appsToSave = getCheckedApps();
-		ArrayList<AppInfo> savedApps = getSavedApps();
+	public void saveApps(View view) {
+		AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
+		// Get the apps that are selected (checkboxs are checked)
+		ArrayList<AppInfo> appsToSave = listAdapter.getCheckedApps();
 		for (int i=0; i < appsToSave.size(); i++) {
-			AppInfo app = new AppInfo((String)appsToSave.get(i));
-			if (!savedApps.contains(app)) { // If the app name is not saved on the server
+			AppInfo appInfo = appsToSave.get(i);
+			if (!appInfo.isSaved()) { // If the app name is not saved on the server
 				try {
 					Task task = new Task();
-					task.setTitle(app.getName());
-					task.setNotes(app.getName());
+					task.setTitle(appInfo.getName());
+					task.setNotes(appInfo.getName());
 					tasksService.tasks.insert(DEFAULT_LIST, task).execute();
 				} catch (IOException e) {
 					handleException(e);
 				}
 			}
 		}
+		listAdapter.updateSavedState(appsToSave, true);
 	}
 
 	/**
-	 * Delete the selected apps from the server, if they r there.
+	 * Deletes the selected apps from the server, if they are there.
+	 * 
+	 * @param view
 	 * */
-	public void unsaveApps(View v) {
-		ArrayList<CharSequence> appsToUnsave = getCheckedApps();
-		ArrayList<AppInfo> savedApps = getSavedApps();
+	public void unsaveApps(View view) {
+		AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
+		// Get the apps that are selected (checkboxs are checked)
+		ArrayList<AppInfo> appsToUnsave = listAdapter.getCheckedApps();
 		for (int i=0; i < appsToUnsave.size(); i++) {
-			AppInfo app = new AppInfo((String)appsToUnsave.get(i));
-			if (savedApps.contains(app)) { // If the app name is saved on the server
+			AppInfo appInfo = appsToUnsave.get(i);
+			if (appInfo.isSaved()) { // If the app name is saved on the server
 				try {
-					tasksService.tasks.delete(DEFAULT_LIST, app.getName()).execute();
+					tasksService.tasks.delete(DEFAULT_LIST, appInfo.getName()).execute();
 				} catch (IOException e) {
 					handleException(e);
 				}
 			}
 		}
+		listAdapter.updateSavedState(appsToUnsave, false);
 	}
 
 	/**
-	 * Returns all the apps that were chosen by the user (checkboxs are checked).
+	 * Verifies if the "Select All" checkbox is checked or not and update the checkbox 
+	 * state of all the apps on the list according to it.
+	 * 
+	 * @param selectAllCheckBox
 	 * */
-	private ArrayList<CharSequence> getCheckedApps() {
-		ListView listView = this.getListView();
-		ArrayList<CharSequence> checkedApps = new ArrayList<CharSequence>();
-		// Loop through all the apps list and get the ones that were checked
-		for (int i=0; i<listView.getChildCount(); i++) {
-			View appView = listView.getChildAt(i);
-			CheckBox appCheckBox = (CheckBox) appView.findViewById(R.id.check);
-			if (appCheckBox.isChecked()) {
-				CharSequence appName = ((TextView) appView.findViewById(R.id.label)).getText();
-				checkedApps.add(appName);
-			}
+	public void updateCkeck(View selectAllCheckBox) {
+		AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
+		if (((CheckBox)selectAllCheckBox).isChecked()) { 
+			// Check all the apps on the list
+			listAdapter.updateCheckState(true);
 		}
-		return checkedApps;
+		else {
+			// Un-check all the apps on the list
+			listAdapter.updateCheckState(false);
+		}
 	}
-		
+
 }
 	
 	// TODO: check if I can use the code down here which has a better performance

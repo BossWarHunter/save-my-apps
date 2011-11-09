@@ -17,6 +17,7 @@ package com.coolapps.savemyapps;
 **/
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import android.app.Activity;
 import android.view.LayoutInflater;
@@ -93,7 +94,8 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 	}
 	
 	/**
-	 * Create a row view linking the elements of the apps_list_item xml to a ViewHolder object.
+	 * Create a row view linking the elements of the apps_list_item xml 
+	 * to a ViewHolder object.
 	 * */
 	private View createNewRowView(AppInfo app) {
 		// Inflate the xml row view (convert it to java code)
@@ -104,7 +106,7 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 		viewHolder.textView = (TextView) rowView.findViewById(R.id.label);
 		viewHolder.imageViewInstalled = (ImageView) rowView.findViewById(R.id.installed_icon);
 		viewHolder.imageViewSaved = (ImageView) rowView.findViewById(R.id.saved_icon);
-		viewHolder.checkBox = (CheckBox) rowView.findViewById(R.id.check); 
+		viewHolder.checkBox = (CheckBox) rowView.findViewById(R.id.checkbox); 
 		viewHolder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				AppInfo app = (AppInfo) viewHolder.checkBox.getTag();
@@ -115,4 +117,62 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 		rowView.setTag(viewHolder);
 		return rowView;
 	}
+	
+	/**
+	 * Updates the checkbox state of all the apps on the list. 
+	 * 
+	 * @param state
+	 * */
+	public void updateCheckState(boolean state) {
+		// Update the state of all the apps on the list
+		for (int i=0; i<appsList.size(); i++) {
+			appsList.get(i).setSelected(state);
+		}
+		// Notify the adapter that the state of the checkboxs changed
+		notifyDataSetChanged();
+	}
+	
+	/**
+	 * Returns all the apps that were chosen by the user 
+	 * (the ones who's checkboxs are checked).
+	 * */
+	public ArrayList<AppInfo> getCheckedApps() {
+		ArrayList<AppInfo> checkedApps = new ArrayList<AppInfo>();
+		// Loop through all the apps list and get the ones that were checked
+		for (int i=0; i<appsList.size(); i++) {
+			AppInfo appInfo = appsList.get(i);
+			if (appInfo.isSelected()) {
+				checkedApps.add(appInfo);
+			}
+		}
+		return checkedApps;
+	}
+	
+	/**
+	 * Updates the saved state of a sub-group of apps.
+	 * 
+	 * @param apps
+	 * @param state
+	 * */
+	public void updateSavedState(ArrayList<AppInfo> appsToUpdate, boolean state) {
+		for (int i=0; i < appsToUpdate.size(); i++) {
+			// Get the position of the current app in appsList
+			int appPos = appsList.indexOf(appsToUpdate.get(i));
+			// Update the saved state of teh app
+			appsList.get(appPos).setSaved(state);
+		}
+		// Notify the adapter that the state of the saved image changed
+		notifyDataSetChanged();
+	}
+	
+	/**
+	 * Updates the installed state of a sub-group of apps.
+	 * 
+	 * @param apps
+	 * @param state
+	 * */
+	public void updateInstalledState(ArrayList<AppInfo> appsToUpdate, boolean state) {
+		// TODO: Implement when the "install apps" option is added 
+	}
+	
 }

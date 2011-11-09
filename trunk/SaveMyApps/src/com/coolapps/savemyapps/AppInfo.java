@@ -16,11 +16,11 @@ package com.coolapps.savemyapps;
  * limitations under the License.
 **/
 
-public class AppInfo {
+public class AppInfo implements Comparable<AppInfo> {
 
 	private String name;
-	// TODO: add set and get for pacckageName
-	private String packageName;
+	// TODO: add set and get for packageName
+	//private String packageName;
 	private boolean saved;
 	private boolean installed;
 	private boolean selected;
@@ -64,8 +64,13 @@ public class AppInfo {
 		return this.selected;
 	}
 	
+	@Override
 	public boolean equals(Object o) {
 		return this.name.equals(((AppInfo)o).getName());
+	}
+
+	public int compareTo(AppInfo anotherAppInfo) {
+		return this.name.compareTo(anotherAppInfo.getName());
 	}
 
 }
