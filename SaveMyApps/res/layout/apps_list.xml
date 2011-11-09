@@ -33,6 +33,29 @@
     	android:layout_height="wrap_content"
     	android:onClick="unsaveApps"
 	/>
+	<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content">
+		<TextView 
+			android:id="@+id/label"
+			android:text="@string/select_all"
+			android:textSize="@dimen/text_size"
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:layout_centerVertical="true"
+			android:layout_alignParentLeft="true"
+			android:layout_toLeftOf="@+id/checkbox"
+		/>
+		<CheckBox 
+			android:id="@+id/checkbox" 
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" 
+			android:layout_marginLeft="@dimen/checkbox_left_marg"
+			android:layout_marginRight="@dimen/checkbox_right_marg" 
+			android:layout_alignParentRight="true"
+			android:onClick="updateCkeck"
+		/>
+	</RelativeLayout>
     <ListView 
 		android:id="@+id/android:list" 
 		android:layout_width="fill_parent"

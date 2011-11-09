@@ -18,4 +18,12 @@
     <string name="app_name">Save My Apps</string>
 	<string name="save_apps_button">Save Apps</string>
 	<string name="unsave_apps_button">Unsave Apps</string>
+	<string name="select_all">Select All</string>
+	
+	<dimen name="text_size">35px</dimen>
+	<dimen name="checkbox_left_marg">4px</dimen>
+	<dimen name="checkbox_right_marg">10px</dimen>
+	<dimen name="image_width">42px</dimen>
+	<dimen name="image_left_marg">4px</dimen>
+	<dimen name="image_right_marg">8px</dimen>
 </resources>
