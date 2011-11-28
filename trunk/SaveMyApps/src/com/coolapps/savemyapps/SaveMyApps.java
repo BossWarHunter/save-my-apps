@@ -19,10 +19,8 @@ package com.coolapps.savemyapps;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeSet;
 
 import com.google.api.client.extensions.android2.AndroidHttp;
-import com.google.api.client.googleapis.auth.oauth2.draft10.GoogleAccessProtectedResource;
 import com.google.api.client.googleapis.extensions.android2.auth.GoogleAccountManager;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpResponseException;
@@ -58,8 +56,7 @@ public class SaveMyApps extends ListActivity {
 	private static final String DEFAULT_LIST = "@savemyapps-default";
 	private GoogleAccountManager accountManager;
 	private final HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
-	private GoogleAccessProtectedResource accessProtectedResource = new GoogleAccessProtectedResource(null);
-	private Tasks tasksService;
+	private Tasks tasksService;// = new Tasks("CoolApps-SaveMyApps/1.0", httpTransport, new JacksonFactory());
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -68,14 +65,9 @@ public class SaveMyApps extends ListActivity {
         this.setContentView(R.layout.apps_list);
         accountManager = new GoogleAccountManager(this);
         // Create a new service to send and get data from google tasks
-        // TODO: uncomment this and try it with internet connection on to see if it still fails
-        //tasksService = new Tasks(httpTransport, accessProtectedResource, new JacksonFactory());
-        //tasksService.setKey(API_KEY);
-        //tasksService.setApplicationName("CoolApps-SaveMyApps/1.0");
-        
-        //TODO: check why the gotAccount is not working 
-        //showAppsList();
-        
+        tasksService = new Tasks(httpTransport, new JacksonFactory());
+        tasksService.setKey(API_KEY);
+        tasksService.setApplicationName("CoolApps-SaveMyApps/1.0");
         gotAccount(false);
 	}
 	
@@ -85,10 +77,6 @@ public class SaveMyApps extends ListActivity {
 	    Account account = accountManager.getAccountByName(accountName);
 	    // If the account was chosen previously
 	    if (account != null) {
-	    	if (tokenExpired) {
-	    		accountManager.invalidateAuthToken(accessProtectedResource.getAccessToken());
-	    		accessProtectedResource.setAccessToken(null);
-	    	}
 	    	gotAccount(account);
 	    	return;
 	    }
@@ -107,25 +95,21 @@ public class SaveMyApps extends ListActivity {
 	            try {
 	              // TODO: the exception appears when the bundle is created...why?
 	            	Bundle bundle = future.getResult();
-	              /*if (bundle.containsKey(AccountManager.KEY_INTENT)) {
+	              if (bundle.containsKey(AccountManager.KEY_INTENT)) {
 	            	  Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
 	            	  intent.setFlags(intent.getFlags() & ~Intent.FLAG_ACTIVITY_NEW_TASK);
 	            	  startActivityForResult(intent, REQUEST_AUTH);
 	              } else if (bundle.containsKey(AccountManager.KEY_AUTHTOKEN)) {
-	                accessProtectedResource.setAccessToken(bundle.getString(AccountManager.KEY_AUTHTOKEN));
 	                showAppsList(); // Load the apps list
-	              }*/
-	            	// TODO: remove this showAppsList call from here when I fix the exception problem
-	            	showAppsList(); 
-
 	              // TODO: find out what exception is this catching and why?
+	              }
 	            } catch (Exception e) {
 	              handleException(e);
 	            }
 	          }
 	        }, null);
 	}
-
+	
 	/**
 	 * Set the list adapter for this activity and load the apps list to the UI.
 	 * */
@@ -212,7 +196,7 @@ public class SaveMyApps extends ListActivity {
 	private ArrayList<AppInfo> getSavedApps() {
 		ArrayList<AppInfo> savedApps = new ArrayList<AppInfo>();
 		try {
-			List<Task> tasks = tasksService.tasks.list(DEFAULT_LIST).execute().getItems();
+			List<Task> tasks = tasksService.tasks().list(DEFAULT_LIST).execute().getItems();
 			if (tasks != null) {
 				for (Task task : tasks) {
 					AppInfo appInfo = new AppInfo(task.getTitle());
@@ -231,8 +215,8 @@ public class SaveMyApps extends ListActivity {
 	private void handleException(Exception e) {
 		e.printStackTrace();
 	    if (e instanceof HttpResponseException) {
-	    	HttpResponse response = ((HttpResponseException) e).response;
-	    	int statusCode = response.statusCode;
+	    	HttpResponse response = ((HttpResponseException) e).getResponse();
+	    	int statusCode = response.getStatusCode();
 	    	try {
 	    		response.ignore();
 	    	} catch (IOException e1) {
@@ -263,7 +247,7 @@ public class SaveMyApps extends ListActivity {
 					Task task = new Task();
 					task.setTitle(appInfo.getName());
 					task.setNotes(appInfo.getName());
-					tasksService.tasks.insert(DEFAULT_LIST, task).execute();
+					tasksService.tasks().insert(DEFAULT_LIST, task).execute();
 				} catch (IOException e) {
 					handleException(e);
 				}
@@ -285,7 +269,7 @@ public class SaveMyApps extends ListActivity {
 			AppInfo appInfo = appsToUnsave.get(i);
 			if (appInfo.isSaved()) { // If the app name is saved on the server
 				try {
-					tasksService.tasks.delete(DEFAULT_LIST, appInfo.getName()).execute();
+					tasksService.tasks().delete(DEFAULT_LIST, appInfo.getName()).execute();
 				} catch (IOException e) {
 					handleException(e);
 				}
