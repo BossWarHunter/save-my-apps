@@ -149,20 +149,16 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 	}
 	
 	/**
-	 * Updates the saved state of a sub-group of apps.
+	 * Updates the saved state of an app.
 	 * 
-	 * @param apps
+	 * @param appToUpdate
 	 * @param state
 	 * */
-	public void updateSavedState(ArrayList<AppInfo> appsToUpdate, boolean state) {
-		for (int i=0; i < appsToUpdate.size(); i++) {
-			// Get the position of the current app in appsList
-			int appPos = appsList.indexOf(appsToUpdate.get(i));
-			// Update the saved state of teh app
-			appsList.get(appPos).setSaved(state);
-		}
-		// Notify the adapter that the state of the saved image changed
-		notifyDataSetChanged();
+	public void updateSavedState(AppInfo appToUpdate, boolean state) {
+		// Get the position of the app in appsList
+		int appPos = appsList.indexOf(appToUpdate);
+		// Update the saved state of the app
+		appsList.get(appPos).setSaved(state);
 	}
 	
 	/**

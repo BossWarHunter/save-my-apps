@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.api.client.extensions.android2.AndroidHttp;
+import com.google.api.client.googleapis.auth.oauth2.draft10.GoogleAccessProtectedResource;
 import com.google.api.client.googleapis.extensions.android2.auth.GoogleAccountManager;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpResponseException;
@@ -50,13 +51,14 @@ public class SaveMyApps extends ListActivity {
     
 	private static final int ACCOUNTS_DIALOG = 0;
 	private static final int REQUEST_AUTH = 0;
+	private static final String PREFS_NAME = "SaveMyAppsPrefs";
 	private static final String AUTH_TOKEN_TYPE = "Manage your tasks";
-	private static final String PREF = "SaveMyAppsPrefs";
-	private static final String API_KEY = "AIzaSyBSdg34QaV73dM0BnsRGDapnMPPEzuT22M";
+	private static final String API_KEY = "AIzaSyAiSNZ8w-Hjg1WTgCuNF6eDMI7jTVLc3MY";
 	private static final String DEFAULT_LIST = "@savemyapps-default";
 	private GoogleAccountManager accountManager;
 	private final HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
-	private Tasks tasksService;// = new Tasks("CoolApps-SaveMyApps/1.0", httpTransport, new JacksonFactory());
+	private final GoogleAccessProtectedResource accessProtectedResource = new GoogleAccessProtectedResource(null);
+	private Tasks tasksService;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -64,50 +66,65 @@ public class SaveMyApps extends ListActivity {
         // Set the view assigned to this activity
         this.setContentView(R.layout.apps_list);
         accountManager = new GoogleAccountManager(this);
-        // Create a new service to send and get data from google tasks
-        tasksService = new Tasks(httpTransport, new JacksonFactory());
-        tasksService.setKey(API_KEY);
-        tasksService.setApplicationName("CoolApps-SaveMyApps/1.0");
-        gotAccount(false);
+        // Create a new service builder that creates instances of task services
+        Tasks.Builder serviceBuilder = Tasks.builder(httpTransport, new JacksonFactory());
+        serviceBuilder.setApplicationName("CoolApps-SaveMyApps/1.0");
+        serviceBuilder.setHttpRequestInitializer(accessProtectedResource);
+        // Build an instance of a tasks service
+        tasksService = serviceBuilder.build();
+        chooseAccount(false);
 	}
 	
-	private void gotAccount(boolean tokenExpired) {
-		SharedPreferences settings = getSharedPreferences(PREF, 0);
-	    String accountName = settings.getString("accountName", null);
+	private void chooseAccount(boolean tokenExpired) {
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		// Get the previously chosen account (if any)
+		String accountName = settings.getString("accountName", null);
 	    Account account = accountManager.getAccountByName(accountName);
 	    // If the account was chosen previously
 	    if (account != null) {
-	    	gotAccount(account);
+	    	// If the access token expired invalidate it
+	    	if (tokenExpired) {
+	            accountManager.invalidateAuthToken(accessProtectedResource.getAccessToken());
+	            accessProtectedResource.setAccessToken(null);
+	    	}
+	    	accountChosen(account);
 	    	return;
 	    }
+	    // If the account was not chosen yet show the accounts dialog
 	    showDialog(ACCOUNTS_DIALOG);
 	}
 
-	private void gotAccount(final Account account) {
-		SharedPreferences settings = getSharedPreferences(PREF, 0);
-	    SharedPreferences.Editor editor = settings.edit();
-	    editor.putString("accountName", account.name);
+	private void accountChosen(final Account account) {
+		// Get the shared preferences
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+	    // Get an editor to modify the preferences
+		SharedPreferences.Editor editor = settings.edit();
+	    // Save the chosen account as a shared preference
+		editor.putString("accountName", account.name);
 	    editor.commit();
+	    // Get the authentication token for the requests to the tasks service
 	    accountManager.manager.getAuthToken(account, AUTH_TOKEN_TYPE, true, 
 	    		new AccountManagerCallback<Bundle>() {
 
-	          public void run(AccountManagerFuture<Bundle> future) {
+	    	public void run(AccountManagerFuture<Bundle> future) {
 	            try {
-	              // TODO: the exception appears when the bundle is created...why?
+	            	// TODO: the exception appears when the bundle is created...why?
 	            	Bundle bundle = future.getResult();
-	              if (bundle.containsKey(AccountManager.KEY_INTENT)) {
-	            	  Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
-	            	  intent.setFlags(intent.getFlags() & ~Intent.FLAG_ACTIVITY_NEW_TASK);
-	            	  startActivityForResult(intent, REQUEST_AUTH);
-	              } else if (bundle.containsKey(AccountManager.KEY_AUTHTOKEN)) {
-	                showAppsList(); // Load the apps list
-	              // TODO: find out what exception is this catching and why?
-	              }
+	            	if (bundle.containsKey(AccountManager.KEY_INTENT)) {
+	            		Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
+	            		intent.setFlags(intent.getFlags() & ~Intent.FLAG_ACTIVITY_NEW_TASK);
+	            		startActivityForResult(intent, REQUEST_AUTH);
+	            	} else if (bundle.containsKey(AccountManager.KEY_AUTHTOKEN)) {
+	                    // Set a new access token
+	            		accessProtectedResource.setAccessToken(bundle.getString(AccountManager.KEY_AUTHTOKEN));
+	            		showAppsList(); // Load the apps list
+	                // TODO: find out what exception is this catching and why?
+	            	}
 	            } catch (Exception e) {
-	              handleException(e);
+	            	handleException(e);
 	            }
 	          }
-	        }, null);
+	    }, null);
 	}
 	
 	/**
@@ -115,7 +132,7 @@ public class SaveMyApps extends ListActivity {
 	 * */
 	private void showAppsList() {
         AppsListAdapter listAdapter = new AppsListAdapter(this, getAllApps()); 
-        // Order the apps list according to their names
+        // Order the apps list in alphabetically
         listAdapter.sort(new AppNameComparator());
         // Set the adapter to fill the list
 		setListAdapter(listAdapter);
@@ -136,7 +153,7 @@ public class SaveMyApps extends ListActivity {
 	    		}
 	    		builder.setItems(accountNames, new DialogInterface.OnClickListener() {
 	    			public void onClick(DialogInterface dialog, int which) {
-	    				gotAccount(accounts[which]);
+	    				accountChosen(accounts[which]);
 	    			}
 	    		});
 	    		return builder.create();
@@ -152,19 +169,20 @@ public class SaveMyApps extends ListActivity {
 		// Get the list of apps installed on the device
 		ArrayList<AppInfo> allApps = getInstalledApps();
 		// Get the list of apps saved on the server
-        /*ArrayList<AppInfo> savedApps = getSavedApps();
+        ArrayList<AppInfo> savedApps = getSavedApps();
         // Merge the 2 list of apps
         for (int i=0; i<savedApps.size(); i++) {
         	AppInfo savedAppInfo = savedApps.get(i);
         	int appIndex = allApps.indexOf(savedAppInfo);
-        	if (appIndex != -1) { // If the app is already installed
+        	// If the app is already installed
+        	if (appIndex != -1) { 
         		AppInfo appInfo = allApps.get(appIndex);
         		appInfo.setSaved(true);
         	}
         	else { // If the app is not installed
         		allApps.add(savedAppInfo);
         	}
-        }*/
+        }
         return allApps;
 	}
 	
@@ -210,27 +228,6 @@ public class SaveMyApps extends ListActivity {
 		return savedApps;
 	}
 	
-	// TODO: add an error dialog that says 
-	// "the app could not connect to the server, please check your Internet connection"
-	private void handleException(Exception e) {
-		e.printStackTrace();
-	    if (e instanceof HttpResponseException) {
-	    	HttpResponse response = ((HttpResponseException) e).getResponse();
-	    	int statusCode = response.getStatusCode();
-	    	try {
-	    		response.ignore();
-	    	} catch (IOException e1) {
-	    		e1.printStackTrace();
-	    	}
-	    	// TODO: what is STATUS 401??
-	    	if (statusCode == 401) {
-	    		gotAccount(true);
-	    		return;
-	    	}
-	    }
-	    Log.e("SaveMyApps", e.getMessage(), e);
-	}
-	
 	/**
 	 * Saves the selected apps on the server, if they are not already there.
 	 * 
@@ -242,18 +239,21 @@ public class SaveMyApps extends ListActivity {
 		ArrayList<AppInfo> appsToSave = listAdapter.getCheckedApps();
 		for (int i=0; i < appsToSave.size(); i++) {
 			AppInfo appInfo = appsToSave.get(i);
-			if (!appInfo.isSaved()) { // If the app name is not saved on the server
+			// If the app name is not saved on the server
+			if (!appInfo.isSaved()) { 
 				try {
 					Task task = new Task();
 					task.setTitle(appInfo.getName());
 					task.setNotes(appInfo.getName());
 					tasksService.tasks().insert(DEFAULT_LIST, task).execute();
+					listAdapter.updateSavedState(appInfo, true);
 				} catch (IOException e) {
 					handleException(e);
 				}
 			}
 		}
-		listAdapter.updateSavedState(appsToSave, true);
+		// Notify the adapter that the state of the saved images changed
+		listAdapter.notifyDataSetChanged();
 	}
 
 	/**
@@ -267,15 +267,18 @@ public class SaveMyApps extends ListActivity {
 		ArrayList<AppInfo> appsToUnsave = listAdapter.getCheckedApps();
 		for (int i=0; i < appsToUnsave.size(); i++) {
 			AppInfo appInfo = appsToUnsave.get(i);
-			if (appInfo.isSaved()) { // If the app name is saved on the server
+			// If the app name is saved on the server
+			if (appInfo.isSaved()) { 
 				try {
 					tasksService.tasks().delete(DEFAULT_LIST, appInfo.getName()).execute();
+					listAdapter.updateSavedState(appInfo, false);
 				} catch (IOException e) {
 					handleException(e);
 				}
 			}
 		}
-		listAdapter.updateSavedState(appsToUnsave, false);
+		// Notify the adapter that the state of the saved images changed
+		listAdapter.notifyDataSetChanged();
 	}
 
 	/**
@@ -296,6 +299,27 @@ public class SaveMyApps extends ListActivity {
 		}
 	}
 
+	// TODO: add an error dialog that says 
+	// "the app could not connect to the server, please check your Internet connection"
+	private void handleException(Exception e) {
+		e.printStackTrace();
+	    if (e instanceof HttpResponseException) {
+	    	HttpResponse response = ((HttpResponseException) e).getResponse();
+	    	int statusCode = response.getStatusCode();
+	    	try {
+	    		response.ignore();
+	    	} catch (IOException e1) {
+	    		e1.printStackTrace();
+	    	}
+	    	// 401 = Authentication error
+	    	if (statusCode == 401) {
+	    		chooseAccount(true);
+	    		return;
+	    	}
+	    }
+	    Log.e("SaveMyApps", e.getMessage(), e);
+	}
+	
 }
 	
 	// TODO: check if I can use the code down here which has a better performance
