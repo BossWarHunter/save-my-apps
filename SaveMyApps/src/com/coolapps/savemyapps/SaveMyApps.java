@@ -26,9 +26,12 @@ import com.google.api.client.googleapis.extensions.android2.auth.GoogleAccountMa
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpResponseException;
 import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.json.JsonHttpRequest;
+import com.google.api.client.http.json.JsonHttpRequestInitializer;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.tasks.model.Task;
 import com.google.api.services.tasks.Tasks;
+import com.google.api.services.tasks.TasksRequest;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -53,8 +56,9 @@ public class SaveMyApps extends ListActivity {
 	private static final int REQUEST_AUTH = 0;
 	private static final String PREFS_NAME = "SaveMyAppsPrefs";
 	private static final String AUTH_TOKEN_TYPE = "Manage your tasks";
-	private static final String API_KEY = "AIzaSyAiSNZ8w-Hjg1WTgCuNF6eDMI7jTVLc3MY";
-	private static final String DEFAULT_LIST = "@savemyapps-default";
+	private static final String API_KEY = "AIzaSyBtwFxJXY0Hxcjr45ls1KHSTvtlHeHaadg";
+	//TODO: change the default list for a specific one
+	private static final String DEFAULT_LIST = "@default";//"@savemyapps-default";
 	private GoogleAccountManager accountManager;
 	private final HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
 	private final GoogleAccessProtectedResource accessProtectedResource = new GoogleAccessProtectedResource(null);
@@ -65,16 +69,28 @@ public class SaveMyApps extends ListActivity {
         super.onCreate(savedInstanceState);
         // Set the view assigned to this activity
         this.setContentView(R.layout.apps_list);
+        // Create an account manager to handle the user google accounts
         accountManager = new GoogleAccountManager(this);
         // Create a new service builder that creates instances of task services
         Tasks.Builder serviceBuilder = Tasks.builder(httpTransport, new JacksonFactory());
-        serviceBuilder.setApplicationName("CoolApps-SaveMyApps/1.0");
+        serviceBuilder.setApplicationName("SaveMyApps");
         serviceBuilder.setHttpRequestInitializer(accessProtectedResource);
+        serviceBuilder.setJsonHttpRequestInitializer(new JsonHttpRequestInitializer() {
+            public void initialize(JsonHttpRequest request) throws IOException {
+              TasksRequest tasksRequest = (TasksRequest) request;
+              tasksRequest.setKey(API_KEY);
+            }
+          });
         // Build an instance of a tasks service
         tasksService = serviceBuilder.build();
         chooseAccount(false);
 	}
 	
+	/**
+	 * If the user didn't choose a google account to synchronize his/her data
+	 * with then {@link showDialog} is called, if there is already an account\
+	 * chosen {@link accountChosen} is called.
+	 * */
 	private void chooseAccount(boolean tokenExpired) {
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		// Get the previously chosen account (if any)
@@ -94,6 +110,11 @@ public class SaveMyApps extends ListActivity {
 	    showDialog(ACCOUNTS_DIALOG);
 	}
 
+	/**
+	 * Once the user choosed an account to synchronize his/her data with
+	 * this method is called to get authorization to manage his/her
+	 * tasks.
+	 * */
 	private void accountChosen(final Account account) {
 		// Get the shared preferences
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -108,7 +129,6 @@ public class SaveMyApps extends ListActivity {
 
 	    	public void run(AccountManagerFuture<Bundle> future) {
 	            try {
-	            	// TODO: the exception appears when the bundle is created...why?
 	            	Bundle bundle = future.getResult();
 	            	if (bundle.containsKey(AccountManager.KEY_INTENT)) {
 	            		Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
@@ -118,7 +138,6 @@ public class SaveMyApps extends ListActivity {
 	                    // Set a new access token
 	            		accessProtectedResource.setAccessToken(bundle.getString(AccountManager.KEY_AUTHTOKEN));
 	            		showAppsList(); // Load the apps list
-	                // TODO: find out what exception is this catching and why?
 	            	}
 	            } catch (Exception e) {
 	            	handleException(e);
@@ -200,7 +219,7 @@ public class SaveMyApps extends ListActivity {
 	        if (!appName.contains(".")) {
 	        	// TODO: add package name?
 		        //newInfo.pname = p.packageName;
-		        AppInfo appInfo = new AppInfo(appName);
+	        	AppInfo appInfo = new AppInfo(appName);
 		        appInfo.setInstalled(true);
 		        installedApps.add(appInfo);
 	        }
@@ -214,10 +233,21 @@ public class SaveMyApps extends ListActivity {
 	private ArrayList<AppInfo> getSavedApps() {
 		ArrayList<AppInfo> savedApps = new ArrayList<AppInfo>();
 		try {
+			// Create the default list if it doesn't exist (TODO: put this somewhere more appropriate)
+			/*TaskLists allTaskLists = tasksService.tasklists().list().execute();
+			if (!allTaskLists.containsKey(DEFAULT_LIST)) {
+				TaskList newTaskList = new TaskList();
+				newTaskList.setId(DEFAULT_LIST);
+				newTaskList.setTitle("SaveMyAppsDefaultList");
+				tasksService.tasklists().insert(newTaskList).execute();				
+			}*/
+			// Get all the app names saved on the specified list
 			List<Task> tasks = tasksService.tasks().list(DEFAULT_LIST).execute().getItems();
 			if (tasks != null) {
 				for (Task task : tasks) {
 					AppInfo appInfo = new AppInfo(task.getTitle());
+					// Set the task id for when it needs to be deleted
+					appInfo.setId(task.getId());
 					appInfo.setSaved(true);
 					savedApps.add(appInfo);
 			    }
@@ -244,9 +274,8 @@ public class SaveMyApps extends ListActivity {
 				try {
 					Task task = new Task();
 					task.setTitle(appInfo.getName());
-					task.setNotes(appInfo.getName());
-					tasksService.tasks().insert(DEFAULT_LIST, task).execute();
-					listAdapter.updateSavedState(appInfo, true);
+					Task savedTask = tasksService.tasks().insert(DEFAULT_LIST, task).execute();
+					listAdapter.updateSavedState(appInfo, true, savedTask.getId());
 				} catch (IOException e) {
 					handleException(e);
 				}
@@ -270,8 +299,8 @@ public class SaveMyApps extends ListActivity {
 			// If the app name is saved on the server
 			if (appInfo.isSaved()) { 
 				try {
-					tasksService.tasks().delete(DEFAULT_LIST, appInfo.getName()).execute();
-					listAdapter.updateSavedState(appInfo, false);
+					tasksService.tasks().delete(DEFAULT_LIST, appInfo.getId()).execute();
+					listAdapter.updateSavedState(appInfo, false, null);
 				} catch (IOException e) {
 					handleException(e);
 				}
@@ -311,13 +340,19 @@ public class SaveMyApps extends ListActivity {
 	    	} catch (IOException e1) {
 	    		e1.printStackTrace();
 	    	}
-	    	// 401 = Authentication error
+	    	// 401 = Authentication error, the auth token expired.
 	    	if (statusCode == 401) {
 	    		chooseAccount(true);
 	    		return;
 	    	}
 	    }
 	    Log.e("SaveMyApps", e.getMessage(), e);
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		showAppsList();
 	}
 	
 }

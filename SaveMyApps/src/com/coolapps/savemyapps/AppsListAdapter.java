@@ -17,7 +17,6 @@ package com.coolapps.savemyapps;
 **/
 
 import java.util.ArrayList;
-import java.util.Comparator;
 
 import android.app.Activity;
 import android.view.LayoutInflater;
@@ -153,12 +152,20 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 	 * 
 	 * @param appToUpdate
 	 * @param state
+	 * 			True if the app was saved, false if it was removed from the
+	 * 			sever.
+	 * @param appId
+	 * 			The ID that was given to the app by the tasks service (only
+	 * 			makes sense when the state is true, otherwise can be null).
 	 * */
-	public void updateSavedState(AppInfo appToUpdate, boolean state) {
+	public void updateSavedState(AppInfo appToUpdate, boolean state, String appId) {
 		// Get the position of the app in appsList
 		int appPos = appsList.indexOf(appToUpdate);
+		AppInfo appInfo = appsList.get(appPos);
 		// Update the saved state of the app
-		appsList.get(appPos).setSaved(state);
+		appInfo.setSaved(state);
+		// Set the ID given by the tasks service (if the state is true)
+		appInfo.setId(appId);
 	}
 	
 	/**
