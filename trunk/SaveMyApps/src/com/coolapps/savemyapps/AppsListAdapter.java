@@ -32,7 +32,7 @@ import android.widget.TextView;
 public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 
 	private final Activity context;
-	private final ArrayList<AppInfo> appsList;
+	private ArrayList<AppInfo> appsList;
 	
 	/** 
 	 * Static to save the reference to the outer class and to avoid access to
@@ -46,9 +46,9 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 	}
 	
 	public AppsListAdapter(Activity context, ArrayList<AppInfo> appsList) {
-		super(context, R.layout.apps_list_item, appsList);
-		this.context = context;
-		this.appsList = appsList;
+        super(context, R.layout.apps_list_item, appsList);
+        this.context = context;
+        this.appsList = appsList;
 	}
 	
 	/**
@@ -83,12 +83,13 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 		else {
 			viewHolder.imageViewSaved.setImageResource(R.drawable.down_arrow);
 		}
-		if (app.isInstalled()) {
+		//TODO un-comment once the install feature is added
+		/*if (app.isInstalled()) {
 			viewHolder.imageViewInstalled.setImageResource(R.drawable.up_arrow);
 		}
 		else {
 			viewHolder.imageViewInstalled.setImageResource(R.drawable.down_arrow);
-		}
+		}*/
 		return rowView;
 	}
 	
@@ -103,7 +104,8 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 		// ViewHolder will buffer the assess to the individual fields of the row layout
 		final ViewHolder viewHolder = new ViewHolder();
 		viewHolder.textView = (TextView) rowView.findViewById(R.id.label);
-		viewHolder.imageViewInstalled = (ImageView) rowView.findViewById(R.id.installed_icon);
+		//TODO un-comment once the install feature is added
+		//viewHolder.imageViewInstalled = (ImageView) rowView.findViewById(R.id.installed_icon);
 		viewHolder.imageViewSaved = (ImageView) rowView.findViewById(R.id.saved_icon);
 		viewHolder.checkBox = (CheckBox) rowView.findViewById(R.id.checkbox); 
 		viewHolder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

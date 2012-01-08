@@ -19,6 +19,10 @@
 	<string name="save_apps_button">Save Apps</string>
 	<string name="unsave_apps_button">Unsave Apps</string>
 	<string name="select_all">Select All</string>
+	<string name="account_dialog_title">Select a Google account</string>
+	<string name="con_error_dialog_title">Connection Error</string>
+	<string name="con_error_message">You seem to not be connected to the internet. Please check your connection and try again.</string>
+	<string name="loading_list_title">Loading Apps List...This could take a while, please be patient.</string>
 	
 	<dimen name="text_size">35px</dimen>
 	<dimen name="checkbox_left_marg">4px</dimen>

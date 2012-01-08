@@ -30,6 +30,8 @@ import com.google.api.client.http.json.JsonHttpRequest;
 import com.google.api.client.http.json.JsonHttpRequestInitializer;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.tasks.model.Task;
+import com.google.api.services.tasks.model.TaskList;
+import com.google.api.services.tasks.model.TaskLists;
 import com.google.api.services.tasks.Tasks;
 import com.google.api.services.tasks.TasksRequest;
 
@@ -40,10 +42,15 @@ import android.accounts.AccountManagerFuture;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -53,22 +60,53 @@ import android.widget.CheckBox;
 public class SaveMyApps extends ListActivity {
     
 	private static final int ACCOUNTS_DIALOG = 0;
+	private static final int CON_ERROR_DIALOG = 1;
 	private static final int REQUEST_AUTH = 0;
 	private static final String PREFS_NAME = "SaveMyAppsPrefs";
 	private static final String AUTH_TOKEN_TYPE = "Manage your tasks";
 	private static final String API_KEY = "AIzaSyBtwFxJXY0Hxcjr45ls1KHSTvtlHeHaadg";
 	//TODO: change the default list for a specific one
-	private static final String DEFAULT_LIST = "@default";//"@savemyapps-default";
+	public static final String DEFAULT_LIST_ID = "@default";//"@savemyappsdefault";
 	private GoogleAccountManager accountManager;
 	private final HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
 	private final GoogleAccessProtectedResource accessProtectedResource = new GoogleAccessProtectedResource(null);
-	private Tasks tasksService;
-	
+	public Tasks tasksService;
+	private AppsListLoader appsListLoader;
+		
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Check if the device is connected to the internet
+        checkNetworkAvailability();
+	}
+	
+	/**
+	 * Checks if the device is currently connected to the internet, if so continue with
+	 * the operations, if not show an error message and close the application. 
+	 * */
+	private void checkNetworkAvailability() {
+	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwInfo = cm.getActiveNetworkInfo();
+        if (activeNetwInfo != null) {
+            if (!activeNetwInfo.isConnected()) {
+            	showDialog(CON_ERROR_DIALOG);
+            }
+            startOperations();
+        }
+        else {
+        	showDialog(CON_ERROR_DIALOG);;
+        }
+	}
+	
+	/**
+	 * This method is called when the app is connected to the internet to set
+	 * up the global variables and start the app operations.
+	 * */
+	private void startOperations() {
         // Set the view assigned to this activity
         this.setContentView(R.layout.apps_list);
+        // Create a new async task to load the apps list
+        appsListLoader = new AppsListLoader(this);
         // Create an account manager to handle the user google accounts
         accountManager = new GoogleAccountManager(this);
         // Create a new service builder that creates instances of task services
@@ -85,7 +123,7 @@ public class SaveMyApps extends ListActivity {
         tasksService = serviceBuilder.build();
         chooseAccount(false);
 	}
-	
+		
 	/**
 	 * If the user didn't choose a google account to synchronize his/her data
 	 * with then {@link showDialog} is called, if there is already an account\
@@ -137,7 +175,7 @@ public class SaveMyApps extends ListActivity {
 	            	} else if (bundle.containsKey(AccountManager.KEY_AUTHTOKEN)) {
 	                    // Set a new access token
 	            		accessProtectedResource.setAccessToken(bundle.getString(AccountManager.KEY_AUTHTOKEN));
-	            		showAppsList(); // Load the apps list
+	            		appsListLoader.execute(); // Load the apps list
 	            	}
 	            } catch (Exception e) {
 	            	handleException(e);
@@ -148,22 +186,22 @@ public class SaveMyApps extends ListActivity {
 	
 	/**
 	 * Set the list adapter for this activity and load the apps list to the UI.
-	 * */
+	 * 
 	private void showAppsList() {
         AppsListAdapter listAdapter = new AppsListAdapter(this, getAllApps()); 
         // Order the apps list in alphabetically
         listAdapter.sort(new AppNameComparator());
         // Set the adapter to fill the list
 		setListAdapter(listAdapter);
-	}
+	}*/
 	
 	@Override
 	protected Dialog onCreateDialog(int id) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		switch (id) {
 			//Create the accounts dialog so the user chooses which account to sync with
 			case ACCOUNTS_DIALOG:
-	    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-	    		builder.setTitle("Select a Google account");
+				builder.setTitle(R.string.account_dialog_title);
 	    		final Account[] accounts = accountManager.getAccounts();
 	    		final int accountsNun = accounts.length;
 	    		String[] accountNames = new String[accountsNun];
@@ -175,89 +213,33 @@ public class SaveMyApps extends ListActivity {
 	    				accountChosen(accounts[which]);
 	    			}
 	    		});
-	    		return builder.create();
-	    	// TODO: add a progress dialog to be showed while loading the apps list	
+	    		break;
+	    	// Create an error dialog for when the device is not connected to the internet	
+			case CON_ERROR_DIALOG:
+				builder.setTitle(R.string.con_error_dialog_title);
+				builder.setMessage(R.string.con_error_message)
+			       .setCancelable(false)
+			       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			           public void onClick(DialogInterface dialog, int id) {
+			                SaveMyApps.this.finish();
+			           }
+			       });
+				break;
+			//TODO delete test dialog
+			case 3:
+				builder.setTitle(R.string.con_error_dialog_title);
+				builder.setMessage(R.string.con_error_message)
+			       .setCancelable(false)
+			       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			           public void onClick(DialogInterface dialog, int id) {
+			                dialog.cancel();
+			           }
+			       });
+				break;
 		}
-		return null;
+		return builder.create();
 	}
-	
-	/**
-	 * Return a list of all the installed and saved apps.
-	 * */
-	private ArrayList<AppInfo> getAllApps() {
-		// Get the list of apps installed on the device
-		ArrayList<AppInfo> allApps = getInstalledApps();
-		// Get the list of apps saved on the server
-        ArrayList<AppInfo> savedApps = getSavedApps();
-        // Merge the 2 list of apps
-        for (int i=0; i<savedApps.size(); i++) {
-        	AppInfo savedAppInfo = savedApps.get(i);
-        	int appIndex = allApps.indexOf(savedAppInfo);
-        	// If the app is already installed
-        	if (appIndex != -1) { 
-        		AppInfo appInfo = allApps.get(appIndex);
-        		appInfo.setSaved(true);
-        	}
-        	else { // If the app is not installed
-        		allApps.add(savedAppInfo);
-        	}
-        }
-        return allApps;
-	}
-	
-	/**
-	 * Returns all the apps actually installed on the device, 
-	 * with the option to choose the system packages or not.
-	 */
-	private ArrayList<AppInfo> getInstalledApps() {
-		ArrayList<AppInfo> installedApps = new ArrayList<AppInfo>();        
-	    List<ApplicationInfo> appsList = getPackageManager().getInstalledApplications(0);
-	    for (int i=0; i<appsList.size(); i++) {
-	    	ApplicationInfo app = appsList.get(i);
-	        String appName = app.loadLabel(getPackageManager()).toString();
-	        // If the appName is a real app and not a package name
-	        if (!appName.contains(".")) {
-	        	// TODO: add package name?
-		        //newInfo.pname = p.packageName;
-	        	AppInfo appInfo = new AppInfo(appName);
-		        appInfo.setInstalled(true);
-		        installedApps.add(appInfo);
-	        }
-	    }
-	    return installedApps; 
-	}
-	
-	/**
-	 * Returns a list of all the apps saved on the server.
-	 * */
-	private ArrayList<AppInfo> getSavedApps() {
-		ArrayList<AppInfo> savedApps = new ArrayList<AppInfo>();
-		try {
-			// Create the default list if it doesn't exist (TODO: put this somewhere more appropriate)
-			/*TaskLists allTaskLists = tasksService.tasklists().list().execute();
-			if (!allTaskLists.containsKey(DEFAULT_LIST)) {
-				TaskList newTaskList = new TaskList();
-				newTaskList.setId(DEFAULT_LIST);
-				newTaskList.setTitle("SaveMyAppsDefaultList");
-				tasksService.tasklists().insert(newTaskList).execute();				
-			}*/
-			// Get all the app names saved on the specified list
-			List<Task> tasks = tasksService.tasks().list(DEFAULT_LIST).execute().getItems();
-			if (tasks != null) {
-				for (Task task : tasks) {
-					AppInfo appInfo = new AppInfo(task.getTitle());
-					// Set the task id for when it needs to be deleted
-					appInfo.setId(task.getId());
-					appInfo.setSaved(true);
-					savedApps.add(appInfo);
-			    }
-			} 
-		} catch (IOException e) {
-			handleException(e);
-		}
-		return savedApps;
-	}
-	
+		
 	/**
 	 * Saves the selected apps on the server, if they are not already there.
 	 * 
@@ -274,7 +256,7 @@ public class SaveMyApps extends ListActivity {
 				try {
 					Task task = new Task();
 					task.setTitle(appInfo.getName());
-					Task savedTask = tasksService.tasks().insert(DEFAULT_LIST, task).execute();
+					Task savedTask = tasksService.tasks().insert(DEFAULT_LIST_ID, task).execute();
 					listAdapter.updateSavedState(appInfo, true, savedTask.getId());
 				} catch (IOException e) {
 					handleException(e);
@@ -299,7 +281,7 @@ public class SaveMyApps extends ListActivity {
 			// If the app name is saved on the server
 			if (appInfo.isSaved()) { 
 				try {
-					tasksService.tasks().delete(DEFAULT_LIST, appInfo.getId()).execute();
+					tasksService.tasks().delete(DEFAULT_LIST_ID, appInfo.getId()).execute();
 					listAdapter.updateSavedState(appInfo, false, null);
 				} catch (IOException e) {
 					handleException(e);
@@ -330,7 +312,7 @@ public class SaveMyApps extends ListActivity {
 
 	// TODO: add an error dialog that says 
 	// "the app could not connect to the server, please check your Internet connection"
-	private void handleException(Exception e) {
+	public void handleException(Exception e) {
 		e.printStackTrace();
 	    if (e instanceof HttpResponseException) {
 	    	HttpResponse response = ((HttpResponseException) e).getResponse();
@@ -352,7 +334,8 @@ public class SaveMyApps extends ListActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		showAppsList();
+		// TODO: reload apps list on the UI
+		//showAppsList();
 	}
 	
 }

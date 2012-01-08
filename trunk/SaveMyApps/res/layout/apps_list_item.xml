@@ -19,15 +19,17 @@
 	android:layout_height="wrap_content" >
 	<!-- Default icon is the down arrow, but it changes dynamically, 
 		 depending if the app is saved on the server or not -->
-	<ImageView 
+		 
+	<!-- TODO un-comment once the install feature is added -->
+	<!-- ImageView 
 		android:id="@+id/installed_icon" 
-		android:src="@drawable/down_arrow"
 		android:layout_height="wrap_content"
 		android:layout_width="@dimen/image_width"
 		android:layout_centerVertical="true"
 		android:layout_marginLeft="@dimen/image_left_marg"
 		android:layout_marginRight="@dimen/image_right_marg"
-	/>
+	/-->
+	
 	<ImageView 
 		android:id="@+id/saved_icon" 
 		android:src="@drawable/down_arrow"
