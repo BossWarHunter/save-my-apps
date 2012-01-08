@@ -57,16 +57,12 @@ public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>>{
 	 * @param listName
 	 * */
 	private void createList(String listId, String listName) {
-		try {
-			TaskLists allTaskLists = listActivity.tasksService.tasklists().list().execute();
-			if (!allTaskLists.containsKey(listId)) {
-				TaskList newTaskList = new TaskList();
-				newTaskList.setId("savemyappsdefault");
-				newTaskList.setTitle(listName);
-				listActivity.tasksService.tasklists().insert(newTaskList).execute();				
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		TaskLists allTaskLists = listActivity.gTasksManager.getAllTaskLists();
+		if (!allTaskLists.containsKey(listId)) {
+			TaskList newTaskList = new TaskList();
+			newTaskList.setId("savemyappsdefault");
+			newTaskList.setTitle(listName);
+			listActivity.gTasksManager.insertTaskList(newTaskList);				
 		}
 	}
 	
@@ -123,22 +119,17 @@ public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>>{
 	 * */
 	private ArrayList<AppInfo> getSavedApps() {
 		ArrayList<AppInfo> savedApps = new ArrayList<AppInfo>();
-		try {
-			// Get all the app names saved on the specified list
-			List<Task> tasks = this.listActivity.tasksService.tasks().list(
-					listActivity.DEFAULT_LIST_ID).execute().getItems();
-			if (tasks != null) {
-				for (Task task : tasks) {
-					AppInfo appInfo = new AppInfo(task.getTitle());
-					// Set the task id for when it needs to be deleted
-					appInfo.setId(task.getId());
-					appInfo.setSaved(true);
-					savedApps.add(appInfo);
-			    }
-			} 
-		} catch (IOException e) {
-			listActivity.handleException(e);
-		}
+		// Get all the app names saved on the specified list
+		List<Task> tasks = this.listActivity.gTasksManager.getTasks(listActivity.DEFAULT_LIST_ID);
+		if (tasks != null) {
+			for (Task task : tasks) {
+				AppInfo appInfo = new AppInfo(task.getTitle());
+				// Set the task id for when it needs to be deleted
+				appInfo.setId(task.getId());
+				appInfo.setSaved(true);
+				savedApps.add(appInfo);
+		    }
+		} 
 		return savedApps;
 	}
 }
