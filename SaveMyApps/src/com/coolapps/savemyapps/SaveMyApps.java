@@ -39,6 +39,8 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
@@ -64,13 +66,10 @@ public class SaveMyApps extends ListActivity {
 	private static final int REQUEST_AUTH = 0;
 	private static final String PREFS_NAME = "SaveMyAppsPrefs";
 	private static final String AUTH_TOKEN_TYPE = "Manage your tasks";
-	private static final String API_KEY = "AIzaSyBtwFxJXY0Hxcjr45ls1KHSTvtlHeHaadg";
 	//TODO: change the default list for a specific one
 	public static final String DEFAULT_LIST_ID = "@default";//"@savemyappsdefault";
 	private GoogleAccountManager accountManager;
-	private final HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
-	private final GoogleAccessProtectedResource accessProtectedResource = new GoogleAccessProtectedResource(null);
-	public Tasks tasksService;
+	public GTasksManager gTasksManager;
 	private AppsListLoader appsListLoader;
 		
 	@Override
@@ -109,18 +108,8 @@ public class SaveMyApps extends ListActivity {
         appsListLoader = new AppsListLoader(this);
         // Create an account manager to handle the user google accounts
         accountManager = new GoogleAccountManager(this);
-        // Create a new service builder that creates instances of task services
-        Tasks.Builder serviceBuilder = Tasks.builder(httpTransport, new JacksonFactory());
-        serviceBuilder.setApplicationName("SaveMyApps");
-        serviceBuilder.setHttpRequestInitializer(accessProtectedResource);
-        serviceBuilder.setJsonHttpRequestInitializer(new JsonHttpRequestInitializer() {
-            public void initialize(JsonHttpRequest request) throws IOException {
-              TasksRequest tasksRequest = (TasksRequest) request;
-              tasksRequest.setKey(API_KEY);
-            }
-          });
-        // Build an instance of a tasks service
-        tasksService = serviceBuilder.build();
+        // Create a tasks manager to communicate with the Google Tasks Service
+        gTasksManager = new GTasksManager(this);
         chooseAccount(false);
 	}
 		
@@ -129,7 +118,7 @@ public class SaveMyApps extends ListActivity {
 	 * with then {@link showDialog} is called, if there is already an account\
 	 * chosen {@link accountChosen} is called.
 	 * */
-	private void chooseAccount(boolean tokenExpired) {
+	public void chooseAccount(boolean tokenExpired) {
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		// Get the previously chosen account (if any)
 		String accountName = settings.getString("accountName", null);
@@ -138,8 +127,8 @@ public class SaveMyApps extends ListActivity {
 	    if (account != null) {
 	    	// If the access token expired invalidate it
 	    	if (tokenExpired) {
-	            accountManager.invalidateAuthToken(accessProtectedResource.getAccessToken());
-	            accessProtectedResource.setAccessToken(null);
+	            accountManager.invalidateAuthToken(gTasksManager.getAccessToken());
+	            gTasksManager.setAccessToken(null);
 	    	}
 	    	accountChosen(account);
 	    	return;
@@ -166,20 +155,24 @@ public class SaveMyApps extends ListActivity {
 	    		new AccountManagerCallback<Bundle>() {
 
 	    	public void run(AccountManagerFuture<Bundle> future) {
-	            try {
-	            	Bundle bundle = future.getResult();
-	            	if (bundle.containsKey(AccountManager.KEY_INTENT)) {
-	            		Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
-	            		intent.setFlags(intent.getFlags() & ~Intent.FLAG_ACTIVITY_NEW_TASK);
-	            		startActivityForResult(intent, REQUEST_AUTH);
-	            	} else if (bundle.containsKey(AccountManager.KEY_AUTHTOKEN)) {
-	                    // Set a new access token
-	            		accessProtectedResource.setAccessToken(bundle.getString(AccountManager.KEY_AUTHTOKEN));
-	            		appsListLoader.execute(); // Load the apps list
-	            	}
-	            } catch (Exception e) {
-	            	handleException(e);
-	            }
+	            	try {
+	            		Bundle bundle = future.getResult();
+		            	if (bundle.containsKey(AccountManager.KEY_INTENT)) {
+		            		Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
+		            		intent.setFlags(intent.getFlags() & ~Intent.FLAG_ACTIVITY_NEW_TASK);
+		            		startActivityForResult(intent, REQUEST_AUTH);
+		            	} else if (bundle.containsKey(AccountManager.KEY_AUTHTOKEN)) {
+		                    // Set a new access token
+		            		gTasksManager.setAccessToken(bundle.getString(AccountManager.KEY_AUTHTOKEN));
+		            		appsListLoader.execute(); // Load the apps list
+		            	}						
+					} catch (OperationCanceledException e) {
+						e.printStackTrace();
+					} catch (AuthenticatorException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 	          }
 	    }, null);
 	}
@@ -253,14 +246,11 @@ public class SaveMyApps extends ListActivity {
 			AppInfo appInfo = appsToSave.get(i);
 			// If the app name is not saved on the server
 			if (!appInfo.isSaved()) { 
-				try {
-					Task task = new Task();
-					task.setTitle(appInfo.getName());
-					Task savedTask = tasksService.tasks().insert(DEFAULT_LIST_ID, task).execute();
-					listAdapter.updateSavedState(appInfo, true, savedTask.getId());
-				} catch (IOException e) {
-					handleException(e);
-				}
+				Task task = new Task();
+				task.setTitle(appInfo.getName());
+				//TODO saveTask may return null, handle this
+				Task savedTask = gTasksManager.insertTask(DEFAULT_LIST_ID, task);
+				listAdapter.updateSavedState(appInfo, true, savedTask.getId());
 			}
 		}
 		// Notify the adapter that the state of the saved images changed
@@ -280,12 +270,10 @@ public class SaveMyApps extends ListActivity {
 			AppInfo appInfo = appsToUnsave.get(i);
 			// If the app name is saved on the server
 			if (appInfo.isSaved()) { 
-				try {
-					tasksService.tasks().delete(DEFAULT_LIST_ID, appInfo.getId()).execute();
-					listAdapter.updateSavedState(appInfo, false, null);
-				} catch (IOException e) {
-					handleException(e);
-				}
+				//TODO maybe deleteTask should return a boolean and handle the posibility 
+				// of not been able to connect to the server
+				gTasksManager.deleteTask(DEFAULT_LIST_ID, appInfo.getId());
+				listAdapter.updateSavedState(appInfo, false, null);
 			}
 		}
 		// Notify the adapter that the state of the saved images changed
@@ -308,27 +296,6 @@ public class SaveMyApps extends ListActivity {
 			// Un-check all the apps on the list
 			listAdapter.updateCheckState(false);
 		}
-	}
-
-	// TODO: add an error dialog that says 
-	// "the app could not connect to the server, please check your Internet connection"
-	public void handleException(Exception e) {
-		e.printStackTrace();
-	    if (e instanceof HttpResponseException) {
-	    	HttpResponse response = ((HttpResponseException) e).getResponse();
-	    	int statusCode = response.getStatusCode();
-	    	try {
-	    		response.ignore();
-	    	} catch (IOException e1) {
-	    		e1.printStackTrace();
-	    	}
-	    	// 401 = Authentication error, the auth token expired.
-	    	if (statusCode == 401) {
-	    		chooseAccount(true);
-	    		return;
-	    	}
-	    }
-	    Log.e("SaveMyApps", e.getMessage(), e);
 	}
 	
 	@Override
