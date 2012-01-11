@@ -17,6 +17,7 @@ package com.coolapps.savemyapps;
 **/
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import android.util.Log;
@@ -72,9 +73,11 @@ public class GTasksManager {
 		return accessProtectedResource.getAccessToken();
 	}
 	
-	public Task insertTask(String listId, Task task) {
+	public String createTask(String listId, String taskTitle) {
 		try {
-			return tasksService.tasks().insert(listId, task).execute();
+			Task task = new Task();
+			task.setTitle(taskTitle);
+			return tasksService.tasks().insert(listId, task).execute().getId();
 		} catch (IOException e) {
 			handleException(e);
 		}
@@ -89,18 +92,64 @@ public class GTasksManager {
 		}
 	}
 	
-	public List<Task> getTasks(String listId) {
+	/**
+	 * Returns a list of all the apps saved on the server.
+	 * */
+	public ArrayList<AppInfo> getSavedApps() {
+		ArrayList<AppInfo> savedApps = new ArrayList<AppInfo>();
+		// Get all the app names saved on the specified list
+		List<Task> tasks = getTasks(SaveMyApps.DEFAULT_LIST_ID);
+		if (tasks != null) {
+			for (Task task : tasks) {
+				AppInfo appInfo = new AppInfo(task.getTitle());
+				// Set the task id
+				appInfo.setId(task.getId());
+				appInfo.setSaved(true);
+				savedApps.add(appInfo);
+		    }
+		} 
+		return savedApps;
+	}
+
+	
+	private List<Task> getTasks(String listId) {
 		try {
-			return tasksService.tasks().list(listId).execute().getItems();
+			List<Task> allResults = new ArrayList<Task>();
+			Tasks.TasksOperations.List tasksReq = tasksService.tasks().list(listId);
+			String nextPageToken = null;
+			// Only return the id and title of every task (to improve performance),
+			// and the token to get the next page of results (in case there are more
+			// than 100 results)
+			tasksReq.setFields("nextPageToken,items(id,title)");
+			// Iterate to get all the results while there are pages (each page contains
+			// a max of 100 results)
+			do {
+				com.google.api.services.tasks.model.Tasks tasksResp = tasksReq.execute();
+				allResults.addAll(tasksResp.getItems());
+				nextPageToken = tasksResp.getNextPageToken();
+				tasksReq.setPageToken(nextPageToken);
+			} while (nextPageToken != null);			
+			return allResults;
 		} catch (IOException e) {
 			handleException(e);
 		}
 		return null;
 	}
 	
-	public void insertTaskList(TaskList newTaskList) {
+	/**
+	 * Creates a list in the server if it doesn't exist.
+	 * 
+	 * @param listId
+	 * @param listName
+	 * */
+	public void createTaskList(String listId, String listName) {
 		try {
-			tasksService.tasklists().insert(newTaskList).execute();
+			if (!listExists(listId)) {
+				TaskList newTaskList = new TaskList();
+				newTaskList.setId("savemyappsdefault");
+				newTaskList.setTitle(listName);
+				tasksService.tasklists().insert(newTaskList).execute();
+			}
 		} catch (IOException e) {
 			handleException(e);
 		}
@@ -108,11 +157,18 @@ public class GTasksManager {
 	
 	public TaskLists getAllTaskLists() {
 		try {
-			return tasksService.tasklists().list().execute();
+			Tasks.Tasklists.List listsReq = tasksService.tasklists().list();
+			// Only return the id and title of every list (to improve performance)
+			listsReq.setFields("items(id,title)");
+			return listsReq.execute();
 		} catch (IOException e) {
 			handleException(e);
 		}
 		return null;
+	}
+	
+	public boolean listExists(String listId) {
+		return getAllTaskLists().containsKey(listId);
 	}
 	
 	private void handleException(Exception e) {

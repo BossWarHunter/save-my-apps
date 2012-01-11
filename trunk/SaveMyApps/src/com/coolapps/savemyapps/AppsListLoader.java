@@ -23,14 +23,8 @@ import android.app.ProgressDialog;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
-import android.widget.Toast;
 
-import com.google.api.services.tasks.model.Task;
-import com.google.api.services.tasks.model.TaskList;
-import com.google.api.services.tasks.model.TaskLists;
-
-//TODO borrar string
-public class AppsListLoader extends AsyncTask<Void, String, ArrayList<AppInfo>> {
+public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>> {
 
 	private SaveMyApps mainActivity;
 	private ProgressDialog progressDialog;
@@ -52,8 +46,11 @@ public class AppsListLoader extends AsyncTask<Void, String, ArrayList<AppInfo>> 
 	protected ArrayList<AppInfo> doInBackground(Void... params) {
 		// Create the default list where the app names will be saved (if it doesn't exists)
 		//TODO: do this better
-        this.createList(SaveMyApps.DEFAULT_LIST_ID, "SaveMyAppsDefaultList");
-        return getAllApps();
+		GTasksManager gTasksManager = mainActivity.gTasksManager;
+		if (!gTasksManager.listExists(SaveMyApps.DEFAULT_LIST_ID)) {
+			gTasksManager.createTaskList(SaveMyApps.DEFAULT_LIST_ID, "SaveMyAppsDefaultList");	
+		}
+		return getAllApps();
 	}		
 	
 	@Override
@@ -69,29 +66,13 @@ public class AppsListLoader extends AsyncTask<Void, String, ArrayList<AppInfo>> 
 	}
 	
 	/**
-	 * Creates a list in the server if it doesn't exist.
-	 * 
-	 * @param listId
-	 * @param listName
-	 * */
-	private void createList(String listId, String listName) {
-		TaskLists allTaskLists = mainActivity.gTasksManager.getAllTaskLists();
-		if (!allTaskLists.containsKey(listId)) {
-			TaskList newTaskList = new TaskList();
-			newTaskList.setId("savemyappsdefault");
-			newTaskList.setTitle(listName);
-			mainActivity.gTasksManager.insertTaskList(newTaskList);				
-		}
-	}
-	
-	/**
 	 * Return a list of all the installed and saved apps.
 	 * */
 	private ArrayList<AppInfo> getAllApps() {
 		// Get the list of apps installed on the device
 		ArrayList<AppInfo> allApps = getInstalledApps();
 		// Get the list of apps saved on the server
-        ArrayList<AppInfo> savedApps = getSavedApps();
+        ArrayList<AppInfo> savedApps = mainActivity.gTasksManager.getSavedApps();
         // Merge the 2 list of apps
         int savedPassNum = savedApps.size();
         for (int i=0; i<savedPassNum; i++) {
@@ -111,7 +92,7 @@ public class AppsListLoader extends AsyncTask<Void, String, ArrayList<AppInfo>> 
 	
 	/**
 	 * Returns all the apps actually installed on the device, 
-	 * with the option to choose the system packages or not.
+	 * with t)he option to choose the system packages or not.
 	 */
 	private ArrayList<AppInfo> getInstalledApps() {
 		ArrayList<AppInfo> installedApps = new ArrayList<AppInfo>();     
@@ -129,39 +110,8 @@ public class AppsListLoader extends AsyncTask<Void, String, ArrayList<AppInfo>> 
 		        installedApps.add(appInfo);
 	        }
 	    }
-	    
-		//TODO borrar
-		publishProgress("installed " + installedApps.size());
-
 	    return installedApps; 
 	}
-	
-	/**
-	 * Returns a list of all the apps saved on the server.
-	 * */
-	private ArrayList<AppInfo> getSavedApps() {
-		ArrayList<AppInfo> savedApps = new ArrayList<AppInfo>();
-		// Get all the app names saved on the specified list
-		List<Task> tasks = mainActivity.gTasksManager.getTasks(SaveMyApps.DEFAULT_LIST_ID);
-		if (tasks != null) {
-			for (Task task : tasks) {
-				AppInfo appInfo = new AppInfo(task.getTitle());
-				// Set the task id
-				appInfo.setId(task.getId());
-				appInfo.setSaved(true);
-				savedApps.add(appInfo);
-		    }
-		} 
-		
-		//TODO borrar
-		publishProgress("tasks " + tasks.size() + " saved " + savedApps.size());
-		
-		return savedApps;
-	}
-	
-	@Override
-	protected void onProgressUpdate(String... values) {
-		Toast.makeText(mainActivity.getApplicationContext(), values[0], Toast.LENGTH_LONG).show();
-	}
+
 }
 

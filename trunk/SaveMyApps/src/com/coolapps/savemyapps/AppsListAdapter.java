@@ -153,16 +153,14 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 	 * Updates the saved state of an app.
 	 * 
 	 * @param appToUpdate
-	 * @param state
-	 * 			True if the app was saved, false if it was removed from the
-	 * 			sever.
+	 * 			App to update with the new saved state (true or false).
 	 * */
-	public void updateSavedState(AppInfo appToUpdate, boolean state) {
+	public void updateSavedState(AppInfo appToUpdate) {
 		// Get the position of the app in appsList
 		int appPos = appsList.indexOf(appToUpdate);
 		AppInfo appInfo = appsList.get(appPos);
 		// Update the saved state of the app
-		appInfo.setSaved(state);
+		appInfo.setSaved(appToUpdate.isSaved());
 	}
 	
 	/**
