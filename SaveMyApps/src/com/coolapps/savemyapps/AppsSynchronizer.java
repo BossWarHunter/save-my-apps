@@ -1,11 +1,26 @@
 package com.coolapps.savemyapps;
 
-import java.util.ArrayList;
+/*
+ * Copyright 2011 Franco Sabadini - fsabadi@gmail.com
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at	
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0	
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+**/
 
-import com.google.api.services.tasks.model.Task;
+import java.util.ArrayList;
 
 import android.os.AsyncTask;
 import android.widget.Toast;
+
 
 public class AppsSynchronizer extends AsyncTask<ArrayList<AppInfo>, AppInfo, Void> {
 
@@ -41,7 +56,7 @@ public class AppsSynchronizer extends AsyncTask<ArrayList<AppInfo>, AppInfo, Voi
 	@Override
 	protected void onProgressUpdate(AppInfo... appsInfo) {
 		AppsListAdapter listAdapter = (AppsListAdapter) mainActivity.getListAdapter();
-		listAdapter.updateSavedState(appsInfo[0], true);		
+		listAdapter.updateSavedState(appsInfo[0]);		
 		listAdapter.notifyDataSetChanged();
 	}
 	
@@ -58,12 +73,12 @@ public class AppsSynchronizer extends AsyncTask<ArrayList<AppInfo>, AppInfo, Voi
 			AppInfo appInfo = appsToSave.get(i);
 			// If the app name is not saved on the server
 			if (!appInfo.isSaved()) { 
-				Task task = new Task();
-				task.setTitle(appInfo.getName());
 				//TODO saveTask may return null, handle this
-				Task savedTask = gTasksManager.insertTask(SaveMyApps.DEFAULT_LIST_ID, task);
+				String savedTaskId = gTasksManager.createTask(SaveMyApps.DEFAULT_LIST_ID, 
+						appInfo.getName());
 				// Set the ID given by the tasks service (if the state is true)
-				appInfo.setId(savedTask.getId());
+				appInfo.setId(savedTaskId);
+				appInfo.setSaved(true);
 				publishProgress(appInfo);
 			}
 		}		
@@ -78,6 +93,7 @@ public class AppsSynchronizer extends AsyncTask<ArrayList<AppInfo>, AppInfo, Voi
 				//TODO maybe deleteTask should return a boolean and handle the posibility 
 				// of not been able to connect to the server
 				gTasksManager.deleteTask(SaveMyApps.DEFAULT_LIST_ID, appInfo.getId());
+				appInfo.setSaved(false);
 				publishProgress(appInfo);
 			}
 		}

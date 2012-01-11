@@ -210,6 +210,7 @@ public class SaveMyApps extends ListActivity {
 	 * 
 	 * @param view
 	 * */
+	@SuppressWarnings("unchecked")
 	public void saveApps(View view) {
 		AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
 		// Get the apps that are selected (checkboxs are checked)
@@ -224,6 +225,7 @@ public class SaveMyApps extends ListActivity {
 	 * 
 	 * @param view
 	 * */
+	@SuppressWarnings("unchecked")
 	public void unsaveApps(View view) {
 		AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
 		// Get the apps that are selected (checkboxs are checked)
