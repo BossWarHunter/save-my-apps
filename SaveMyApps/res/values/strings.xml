@@ -23,6 +23,8 @@
 	<string name="con_error_dialog_title">Connection Error</string>
 	<string name="con_error_message">You seem to not be connected to the internet. Please check your connection and try again.</string>
 	<string name="loading_list_title">Loading Apps List...This could take a while, please be patient.</string>
+	<string name="sync_start_message">The synchronization has started...</string>
+	<string name="sync_end_message">The synchronization finished...</string>
 	
 	<dimen name="text_size">35px</dimen>
 	<dimen name="checkbox_left_marg">4px</dimen>

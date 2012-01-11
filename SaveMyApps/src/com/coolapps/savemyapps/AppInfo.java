@@ -18,8 +18,10 @@ package com.coolapps.savemyapps;
 
 public class AppInfo implements Comparable<AppInfo> {
 
-	// The ID is set only for those apps that are saved
-	// with the ID given by the tasks service
+	/** 
+	 * The ID is set only for those apps that are saved
+	 * with the ID given by the tasks service
+	 * */
 	private String id;
 	private String name;
 	// TODO: add set and get for packageName
