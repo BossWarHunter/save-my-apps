@@ -49,7 +49,8 @@ public class SaveMyApps extends ListActivity {
 	private static final String PREFS_NAME = "SaveMyAppsPrefs";
 	private static final int REQUEST_AUTH = 0;
 	//TODO: change the default list for a specific one
-	public static final String DEFAULT_LIST_ID = "@default";//"@savemyappsdefault";
+	public String DEFAULT_LIST_ID = "";
+	public static String DEFAULT_LIST_NAME = "SaveMyAppsDefaultList";
 	private GoogleAccountManager accountManager;
 	public GTasksManager gTasksManager;
 	private AppsListLoader appsListLoader;
