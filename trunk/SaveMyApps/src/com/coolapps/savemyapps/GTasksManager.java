@@ -98,7 +98,7 @@ public class GTasksManager {
 	public ArrayList<AppInfo> getSavedApps() {
 		ArrayList<AppInfo> savedApps = new ArrayList<AppInfo>();
 		// Get all the app names saved on the specified list
-		List<Task> tasks = getTasks(SaveMyApps.DEFAULT_LIST_ID);
+		List<Task> tasks = getTasks(mainActivity.DEFAULT_LIST_ID);
 		if (tasks != null) {
 			for (Task task : tasks) {
 				AppInfo appInfo = new AppInfo(task.getTitle());
@@ -139,36 +139,43 @@ public class GTasksManager {
 	/**
 	 * Creates a list in the server if it doesn't exist.
 	 * 
-	 * @param listId
 	 * @param listName
 	 * */
-	public void createTaskList(String listId, String listName) {
+	public void createTaskList(String listName) {
 		try {
-			if (!listExists(listId)) {
-				TaskList newTaskList = new TaskList();
-				newTaskList.setId("savemyappsdefault");
-				newTaskList.setTitle(listName);
-				tasksService.tasklists().insert(newTaskList).execute();
-			}
+			TaskList newTaskList = new TaskList();
+			newTaskList.setTitle(listName);
+			TaskList taskList = tasksService.tasklists().insert(newTaskList).execute();
+			//TODO make this better to support several lists
+			mainActivity.DEFAULT_LIST_ID = taskList.getId();
 		} catch (IOException e) {
 			handleException(e);
 		}
 	}
-	
-	public TaskLists getAllTaskLists() {
-		try {
-			Tasks.Tasklists.List listsReq = tasksService.tasklists().list();
-			// Only return the id and title of every list (to improve performance)
-			listsReq.setFields("items(id,title)");
-			return listsReq.execute();
-		} catch (IOException e) {
-			handleException(e);
+
+	/**
+	 * @return Id of the list given in the server.
+	 * */
+	public String getListId(String listTitle) {
+		List<TaskList> taskLists = getAllTaskLists();
+		for (TaskList tl : taskLists) {
+			if (tl.getTitle().equals(listTitle)) {
+				return tl.getId();
+			}
 		}
 		return null;
 	}
 	
-	public boolean listExists(String listId) {
-		return getAllTaskLists().containsKey(listId);
+	private List<TaskList> getAllTaskLists() {
+		try {
+			Tasks.Tasklists.List listsReq = tasksService.tasklists().list();
+			// Only return the id and title of every list (to improve performance)
+			//listsReq.setFields("items(id,title)");
+			return listsReq.execute().getItems();
+		} catch (IOException e) {
+			handleException(e);
+		}
+		return null;
 	}
 	
 	private void handleException(Exception e) {

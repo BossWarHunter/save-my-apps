@@ -74,7 +74,7 @@ public class AppsSynchronizer extends AsyncTask<ArrayList<AppInfo>, AppInfo, Voi
 			// If the app name is not saved on the server
 			if (!appInfo.isSaved()) { 
 				//TODO saveTask may return null, handle this
-				String savedTaskId = gTasksManager.createTask(SaveMyApps.DEFAULT_LIST_ID, 
+				String savedTaskId = gTasksManager.createTask(mainActivity.DEFAULT_LIST_ID, 
 						appInfo.getName());
 				// Set the ID given by the tasks service (if the state is true)
 				appInfo.setId(savedTaskId);
@@ -92,7 +92,7 @@ public class AppsSynchronizer extends AsyncTask<ArrayList<AppInfo>, AppInfo, Voi
 			if (appInfo.isSaved()) { 
 				//TODO maybe deleteTask should return a boolean and handle the posibility 
 				// of not been able to connect to the server
-				gTasksManager.deleteTask(SaveMyApps.DEFAULT_LIST_ID, appInfo.getId());
+				gTasksManager.deleteTask(mainActivity.DEFAULT_LIST_ID, appInfo.getId());
 				appInfo.setSaved(false);
 				publishProgress(appInfo);
 			}
