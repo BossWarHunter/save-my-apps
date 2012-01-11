@@ -18,22 +18,9 @@ package com.coolapps.savemyapps;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
-import com.google.api.client.extensions.android2.AndroidHttp;
-import com.google.api.client.googleapis.auth.oauth2.draft10.GoogleAccessProtectedResource;
+import com.coolapps.savemyapps.AppsSynchronizer.SyncType;
 import com.google.api.client.googleapis.extensions.android2.auth.GoogleAccountManager;
-import com.google.api.client.http.HttpResponse;
-import com.google.api.client.http.HttpResponseException;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.json.JsonHttpRequest;
-import com.google.api.client.http.json.JsonHttpRequestInitializer;
-import com.google.api.client.json.jackson.JacksonFactory;
-import com.google.api.services.tasks.model.Task;
-import com.google.api.services.tasks.model.TaskList;
-import com.google.api.services.tasks.model.TaskLists;
-import com.google.api.services.tasks.Tasks;
-import com.google.api.services.tasks.TasksRequest;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -44,17 +31,13 @@ import android.accounts.OperationCanceledException;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 
@@ -63,9 +46,8 @@ public class SaveMyApps extends ListActivity {
     
 	private static final int ACCOUNTS_DIALOG = 0;
 	private static final int CON_ERROR_DIALOG = 1;
-	private static final int REQUEST_AUTH = 0;
 	private static final String PREFS_NAME = "SaveMyAppsPrefs";
-	private static final String AUTH_TOKEN_TYPE = "Manage your tasks";
+	private static final int REQUEST_AUTH = 0;
 	//TODO: change the default list for a specific one
 	public static final String DEFAULT_LIST_ID = "@default";//"@savemyappsdefault";
 	private GoogleAccountManager accountManager;
@@ -112,7 +94,7 @@ public class SaveMyApps extends ListActivity {
         gTasksManager = new GTasksManager(this);
         chooseAccount(false);
 	}
-		
+
 	/**
 	 * If the user didn't choose a google account to synchronize his/her data
 	 * with then {@link showDialog} is called, if there is already an account\
@@ -136,6 +118,7 @@ public class SaveMyApps extends ListActivity {
 	    // If the account was not chosen yet show the accounts dialog
 	    showDialog(ACCOUNTS_DIALOG);
 	}
+	
 
 	/**
 	 * Once the user choosed an account to synchronize his/her data with
@@ -151,7 +134,7 @@ public class SaveMyApps extends ListActivity {
 		editor.putString("accountName", account.name);
 	    editor.commit();
 	    // Get the authentication token for the requests to the tasks service
-	    accountManager.manager.getAuthToken(account, AUTH_TOKEN_TYPE, true, 
+	    accountManager.manager.getAuthToken(account, gTasksManager.getAuthTokenType(), true, 
 	    		new AccountManagerCallback<Bundle>() {
 
 	    	public void run(AccountManagerFuture<Bundle> future) {
@@ -176,17 +159,6 @@ public class SaveMyApps extends ListActivity {
 	          }
 	    }, null);
 	}
-	
-	/**
-	 * Set the list adapter for this activity and load the apps list to the UI.
-	 * 
-	private void showAppsList() {
-        AppsListAdapter listAdapter = new AppsListAdapter(this, getAllApps()); 
-        // Order the apps list in alphabetically
-        listAdapter.sort(new AppNameComparator());
-        // Set the adapter to fill the list
-		setListAdapter(listAdapter);
-	}*/
 	
 	@Override
 	protected Dialog onCreateDialog(int id) {
@@ -242,19 +214,9 @@ public class SaveMyApps extends ListActivity {
 		AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
 		// Get the apps that are selected (checkboxs are checked)
 		ArrayList<AppInfo> appsToSave = listAdapter.getCheckedApps();
-		for (int i=0; i < appsToSave.size(); i++) {
-			AppInfo appInfo = appsToSave.get(i);
-			// If the app name is not saved on the server
-			if (!appInfo.isSaved()) { 
-				Task task = new Task();
-				task.setTitle(appInfo.getName());
-				//TODO saveTask may return null, handle this
-				Task savedTask = gTasksManager.insertTask(DEFAULT_LIST_ID, task);
-				listAdapter.updateSavedState(appInfo, true, savedTask.getId());
-			}
-		}
-		// Notify the adapter that the state of the saved images changed
-		listAdapter.notifyDataSetChanged();
+		// Create a new thread that will save the apps in the server
+		AppsSynchronizer syncThread = new AppsSynchronizer(this, SyncType.SAVE);
+		syncThread.execute(appsToSave);
 	}
 
 	/**
@@ -266,19 +228,10 @@ public class SaveMyApps extends ListActivity {
 		AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
 		// Get the apps that are selected (checkboxs are checked)
 		ArrayList<AppInfo> appsToUnsave = listAdapter.getCheckedApps();
-		for (int i=0; i < appsToUnsave.size(); i++) {
-			AppInfo appInfo = appsToUnsave.get(i);
-			// If the app name is saved on the server
-			if (appInfo.isSaved()) { 
-				//TODO maybe deleteTask should return a boolean and handle the posibility 
-				// of not been able to connect to the server
-				gTasksManager.deleteTask(DEFAULT_LIST_ID, appInfo.getId());
-				listAdapter.updateSavedState(appInfo, false, null);
-			}
-		}
-		// Notify the adapter that the state of the saved images changed
-		listAdapter.notifyDataSetChanged();
-	}
+		// Create a new thread that will delete the apps from the server
+		AppsSynchronizer syncThread = new AppsSynchronizer(this, SyncType.UNSAVE);
+		syncThread.execute(appsToUnsave);
+	} 
 
 	/**
 	 * Verifies if the "Select All" checkbox is checked or not and update the checkbox 
@@ -296,13 +249,6 @@ public class SaveMyApps extends ListActivity {
 			// Un-check all the apps on the list
 			listAdapter.updateCheckState(false);
 		}
-	}
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		// TODO: reload apps list on the UI
-		//showAppsList();
 	}
 	
 }

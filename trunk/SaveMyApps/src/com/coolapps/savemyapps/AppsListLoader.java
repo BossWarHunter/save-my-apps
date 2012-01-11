@@ -1,6 +1,21 @@
 package com.coolapps.savemyapps;
 
-import java.io.IOException;
+/*
+ * Copyright 2011 Franco Sabadini - fsabadi@gmail.com
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at	
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0	
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+**/
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,33 +23,36 @@ import android.app.ProgressDialog;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.widget.Toast;
 
 import com.google.api.services.tasks.model.Task;
 import com.google.api.services.tasks.model.TaskList;
 import com.google.api.services.tasks.model.TaskLists;
 
-public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>>{
+//TODO borrar string
+public class AppsListLoader extends AsyncTask<Void, String, ArrayList<AppInfo>> {
 
-	private SaveMyApps listActivity;
+	private SaveMyApps mainActivity;
 	private ProgressDialog progressDialog;
 	
 	public AppsListLoader(SaveMyApps activity) {
-		this.listActivity = activity;
-		progressDialog = new ProgressDialog(this.listActivity);
-		progressDialog.setMessage(this.listActivity.getString(R.string.loading_list_title));
-		progressDialog.setIndeterminate(true);
-		progressDialog.setCancelable(false);
+		this.mainActivity = activity;
 	}
 	
 	@Override
 	protected void onPreExecute() {
+		progressDialog = new ProgressDialog(mainActivity);
+		progressDialog.setMessage(mainActivity.getString(R.string.loading_list_title));
+		progressDialog.setIndeterminate(true);
+		progressDialog.setCancelable(false);
 		progressDialog.show();
 	}
 	
 	@Override
 	protected ArrayList<AppInfo> doInBackground(Void... params) {
 		// Create the default list where the app names will be saved (if it doesn't exists)
-        this.createList(listActivity.DEFAULT_LIST_ID, "SaveMyAppsDefaultList");
+		//TODO: do this better
+        this.createList(SaveMyApps.DEFAULT_LIST_ID, "SaveMyAppsDefaultList");
         return getAllApps();
 	}		
 	
@@ -43,11 +61,11 @@ public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>>{
 		// Remove the progress dialog from the UI
 		progressDialog.dismiss();
         // Create the list adapter that loads the apps list to the UI
-		AppsListAdapter listAdapter = new AppsListAdapter(this.listActivity, appsList);
+		AppsListAdapter listAdapter = new AppsListAdapter(mainActivity, appsList);
         // Order the apps list alphabetically
         listAdapter.sort(new AppNameComparator());
         // Set the list adapter that loads the apps list to the UI
-        this.listActivity.setListAdapter(listAdapter);
+        mainActivity.setListAdapter(listAdapter);
 	}
 	
 	/**
@@ -57,12 +75,12 @@ public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>>{
 	 * @param listName
 	 * */
 	private void createList(String listId, String listName) {
-		TaskLists allTaskLists = listActivity.gTasksManager.getAllTaskLists();
+		TaskLists allTaskLists = mainActivity.gTasksManager.getAllTaskLists();
 		if (!allTaskLists.containsKey(listId)) {
 			TaskList newTaskList = new TaskList();
 			newTaskList.setId("savemyappsdefault");
 			newTaskList.setTitle(listName);
-			listActivity.gTasksManager.insertTaskList(newTaskList);				
+			mainActivity.gTasksManager.insertTaskList(newTaskList);				
 		}
 	}
 	
@@ -97,7 +115,7 @@ public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>>{
 	 */
 	private ArrayList<AppInfo> getInstalledApps() {
 		ArrayList<AppInfo> installedApps = new ArrayList<AppInfo>();     
-		PackageManager packageManager = this.listActivity.getPackageManager();
+		PackageManager packageManager = mainActivity.getPackageManager();
 	    List<ApplicationInfo> appsList = packageManager.getInstalledApplications(0);
 	    for (int i=0; i<appsList.size(); i++) {
 	    	ApplicationInfo app = appsList.get(i);
@@ -111,6 +129,10 @@ public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>>{
 		        installedApps.add(appInfo);
 	        }
 	    }
+	    
+		//TODO borrar
+		publishProgress("installed " + installedApps.size());
+
 	    return installedApps; 
 	}
 	
@@ -120,17 +142,26 @@ public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>>{
 	private ArrayList<AppInfo> getSavedApps() {
 		ArrayList<AppInfo> savedApps = new ArrayList<AppInfo>();
 		// Get all the app names saved on the specified list
-		List<Task> tasks = this.listActivity.gTasksManager.getTasks(listActivity.DEFAULT_LIST_ID);
+		List<Task> tasks = mainActivity.gTasksManager.getTasks(SaveMyApps.DEFAULT_LIST_ID);
 		if (tasks != null) {
 			for (Task task : tasks) {
 				AppInfo appInfo = new AppInfo(task.getTitle());
-				// Set the task id for when it needs to be deleted
+				// Set the task id
 				appInfo.setId(task.getId());
 				appInfo.setSaved(true);
 				savedApps.add(appInfo);
 		    }
 		} 
+		
+		//TODO borrar
+		publishProgress("tasks " + tasks.size() + " saved " + savedApps.size());
+		
 		return savedApps;
+	}
+	
+	@Override
+	protected void onProgressUpdate(String... values) {
+		Toast.makeText(mainActivity.getApplicationContext(), values[0], Toast.LENGTH_LONG).show();
 	}
 }
 

@@ -40,6 +40,7 @@ public class GTasksManager {
 	private SaveMyApps mainActivity;
 	private Tasks tasksService;
 	private static final String API_KEY = "AIzaSyBtwFxJXY0Hxcjr45ls1KHSTvtlHeHaadg";
+	private static final String AUTH_TOKEN_TYPE = "Manage your tasks";
 	private final HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
 	private final GoogleAccessProtectedResource accessProtectedResource = new GoogleAccessProtectedResource(null);
 	
@@ -57,6 +58,10 @@ public class GTasksManager {
           });
         // Build an instance of a tasks service
         tasksService = serviceBuilder.build();
+	}
+	
+	public String getAuthTokenType() {
+		return AUTH_TOKEN_TYPE;
 	}
 	
 	public void setAccessToken(String accessToken) {
@@ -110,8 +115,6 @@ public class GTasksManager {
 		return null;
 	}
 	
-	// TODO: add an error dialog that says 
-	// "the app could not connect to the server, please check your Internet connection"
 	private void handleException(Exception e) {
 		e.printStackTrace();
 	    if (e instanceof HttpResponseException) {
