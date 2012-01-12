@@ -23,6 +23,7 @@
 	<!-- TODO un-comment once the install feature is added -->
 	<!-- ImageView 
 		android:id="@+id/installed_icon" 
+		android:src="@drawable/down_arrow"
 		android:layout_height="wrap_content"
 		android:layout_width="@dimen/image_width"
 		android:layout_centerVertical="true"
@@ -32,7 +33,6 @@
 	
 	<ImageView 
 		android:id="@+id/saved_icon" 
-		android:src="@drawable/down_arrow"
 		android:layout_height="wrap_content"
 		android:layout_width="@dimen/image_width"
 		android:layout_centerVertical="true"

@@ -34,7 +34,7 @@ import com.google.api.services.tasks.Tasks;
 import com.google.api.services.tasks.TasksRequest;
 import com.google.api.services.tasks.model.Task;
 import com.google.api.services.tasks.model.TaskList;
-import com.google.api.services.tasks.model.TaskLists;
+
 
 public class GTasksManager {
 
@@ -158,6 +158,7 @@ public class GTasksManager {
 	 * */
 	public String getListId(String listTitle) {
 		List<TaskList> taskLists = getAllTaskLists();
+		// Look in the tasks list for the list with the given title
 		for (TaskList tl : taskLists) {
 			if (tl.getTitle().equals(listTitle)) {
 				return tl.getId();
@@ -167,15 +168,17 @@ public class GTasksManager {
 	}
 	
 	private List<TaskList> getAllTaskLists() {
+		List<TaskList> tasksList = new ArrayList<TaskList>();
 		try {
 			Tasks.Tasklists.List listsReq = tasksService.tasklists().list();
 			// Only return the id and title of every list (to improve performance)
 			//listsReq.setFields("items(id,title)");
-			return listsReq.execute().getItems();
+			tasksList = listsReq.execute().getItems();
 		} catch (IOException e) {
 			handleException(e);
+			return null;
 		}
-		return null;
+		return tasksList;
 	}
 	
 	private void handleException(Exception e) {
