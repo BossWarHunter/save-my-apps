@@ -38,6 +38,9 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
 
@@ -46,6 +49,8 @@ public class SaveMyApps extends ListActivity {
     
 	private static final int ACCOUNTS_DIALOG = 0;
 	private static final int CON_ERROR_DIALOG = 1;
+	//TODO uncomment when I have a help dialog
+	//private static final int HELP_DIALOG = 2;
 	private static final String PREFS_NAME = "SaveMyAppsPrefs";
 	private static final int REQUEST_AUTH = 0;
 	//TODO: change the default list for a specific one
@@ -53,7 +58,6 @@ public class SaveMyApps extends ListActivity {
 	public static String DEFAULT_LIST_NAME = "SaveMyAppsDefaultList";
 	private GoogleAccountManager accountManager;
 	public GTasksManager gTasksManager;
-	private AppsListLoader appsListLoader;
 		
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -87,13 +91,13 @@ public class SaveMyApps extends ListActivity {
 	private void startOperations() {
         // Set the view assigned to this activity
         this.setContentView(R.layout.apps_list);
-        // Create a new async task to load the apps list
-        appsListLoader = new AppsListLoader(this);
         // Create an account manager to handle the user google accounts
         accountManager = new GoogleAccountManager(this);
         // Create a tasks manager to communicate with the Google Tasks Service
         gTasksManager = new GTasksManager(this);
-        chooseAccount(false);
+        //TODO: This should be called with "false" instead, but I've beeing having
+        // some issues with the connection to the GTasks service 
+        chooseAccount(true);
 	}
 
 	/**
@@ -148,7 +152,8 @@ public class SaveMyApps extends ListActivity {
 		            	} else if (bundle.containsKey(AccountManager.KEY_AUTHTOKEN)) {
 		                    // Set a new access token
 		            		gTasksManager.setAccessToken(bundle.getString(AccountManager.KEY_AUTHTOKEN));
-		            		appsListLoader.execute(); // Load the apps list
+		                    // Create a new async task to load the apps list
+		                    new AppsListLoader(SaveMyApps.this).execute();
 		            	}						
 					} catch (OperationCanceledException e) {
 						e.printStackTrace();
@@ -191,17 +196,10 @@ public class SaveMyApps extends ListActivity {
 			           }
 			       });
 				break;
-			//TODO delete test dialog
-			case 3:
-				builder.setTitle(R.string.con_error_dialog_title);
-				builder.setMessage(R.string.con_error_message)
-			       .setCancelable(false)
-			       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-			           public void onClick(DialogInterface dialog, int id) {
-			                dialog.cancel();
-			           }
-			       });
-				break;
+			//TODO uncomment when I have a help dialog
+			/*case HELP_DIALOG:
+				
+				break;*/
 		}
 		return builder.create();
 	}
@@ -251,6 +249,31 @@ public class SaveMyApps extends ListActivity {
 		else {
 			// Un-check all the apps on the list
 			listAdapter.updateCheckState(false);
+		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.options_menu, menu);
+	    return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+			case R.id.refresh:
+				new AppsListLoader(this).execute();
+				return true;
+			//TODO uncomment when I have a help dialog
+			/*case R.id.help:
+				showDialog(HELP_DIALOG);
+				return true;*/
+			case R.id.exit:
+				this.finish();
+				return true;
+			default:
+		        return super.onOptionsItemSelected(item);
 		}
 	}
 	

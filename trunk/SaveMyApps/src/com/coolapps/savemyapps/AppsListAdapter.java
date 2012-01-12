@@ -78,10 +78,10 @@ public class AppsListAdapter extends ArrayAdapter<AppInfo> {
 		// If the app is saved on the server then assign it the up_arrow image, 
 		// if not assign it the down_arrow image
 		if (app.isSaved()) {
-			viewHolder.imageViewSaved.setImageResource(R.drawable.up_arrow);
+			viewHolder.imageViewSaved.setImageResource(R.drawable.ic_saved);
 		}
 		else {
-			viewHolder.imageViewSaved.setImageResource(R.drawable.down_arrow);
+			viewHolder.imageViewSaved.setImageResource(R.drawable.ic_not_saved);
 		}
 		//TODO un-comment once the install feature is added
 		/*if (app.isInstalled()) {

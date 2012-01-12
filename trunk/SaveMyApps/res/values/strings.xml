@@ -25,6 +25,9 @@
 	<string name="loading_list_title">Loading Apps List...This could take a while, please be patient.</string>
 	<string name="sync_start_message">The synchronization has started...</string>
 	<string name="sync_end_message">The synchronization finished...</string>
+	<string name="help">Help</string>
+	<string name="refresh">Refresh</string>
+	<string name="exit">Exit</string>
 	
 	<dimen name="text_size">35px</dimen>
 	<dimen name="checkbox_left_marg">4px</dimen>
