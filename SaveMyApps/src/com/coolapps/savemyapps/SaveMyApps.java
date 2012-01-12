@@ -95,8 +95,6 @@ public class SaveMyApps extends ListActivity {
         accountManager = new GoogleAccountManager(this);
         // Create a tasks manager to communicate with the Google Tasks Service
         gTasksManager = new GTasksManager(this);
-        //TODO: This should be called with "false" instead, but I've beeing having
-        // some issues with the connection to the GTasks service 
         chooseAccount(true);
 	}
 
@@ -152,6 +150,16 @@ public class SaveMyApps extends ListActivity {
 		            	} else if (bundle.containsKey(AccountManager.KEY_AUTHTOKEN)) {
 		                    // Set a new access token
 		            		gTasksManager.setAccessToken(bundle.getString(AccountManager.KEY_AUTHTOKEN));
+		                    // Create the default list where the app names will be saved 
+		                    // (if it doesn't exists)
+		            		// TODO: do this better
+		            		// TODO change the listExists param by ID
+		            		String listId = gTasksManager.getListId(SaveMyApps.DEFAULT_LIST_NAME);
+		            		if (listId == null) {
+		            			gTasksManager.createTaskList(SaveMyApps.DEFAULT_LIST_NAME);	
+		            		} else {
+		            			SaveMyApps.this.DEFAULT_LIST_ID = listId;
+		            		}
 		                    // Create a new async task to load the apps list
 		                    new AppsListLoader(SaveMyApps.this).execute();
 		            	}						

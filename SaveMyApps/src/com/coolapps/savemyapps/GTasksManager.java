@@ -193,7 +193,7 @@ public class GTasksManager {
 	    	}
 	    	// 401 = Authentication error, the auth token expired.
 	    	if (statusCode == 401) {
-	    		this.mainActivity.chooseAccount(true);
+	    		mainActivity.chooseAccount(true);
 	    		return;
 	    	}
 	    }

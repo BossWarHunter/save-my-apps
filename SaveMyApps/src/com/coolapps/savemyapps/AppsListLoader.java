@@ -44,16 +44,6 @@ public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>> {
 	
 	@Override
 	protected ArrayList<AppInfo> doInBackground(Void... params) {
-		// Create the default list where the app names will be saved (if it doesn't exists)
-		//TODO: do this better
-		GTasksManager gTasksManager = mainActivity.gTasksManager;
-		// TODO change the listExists param by ID
-		String listId = gTasksManager.getListId(SaveMyApps.DEFAULT_LIST_NAME);
-		if (listId == null) {
-			gTasksManager.createTaskList(SaveMyApps.DEFAULT_LIST_NAME);	
-		} else {
-			mainActivity.DEFAULT_LIST_ID = listId;
-		}
 		return getAllApps();
 	}		
 	
