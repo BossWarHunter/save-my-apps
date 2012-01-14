@@ -61,6 +61,25 @@ public class GTasksManager {
         tasksService = serviceBuilder.build();
 	}
 	
+	/**
+	 * Checks if the connection to the tasks service is working fine by doing a 
+	 * simple request.
+	 * 
+	 * @return true if the service is working fine, false if not.
+	 * */
+	public boolean tasksServiceUp() {
+		try {
+			Tasks.Tasklists.List listsReq = tasksService.tasklists().list();
+			// Only return the id and title of every list (to improve performance)
+			listsReq.setFields("items(id)");
+			listsReq.execute();
+		} catch (IOException e) {
+			handleException(e);
+			return false;
+		}
+		return true;
+	}
+	
 	public String getAuthTokenType() {
 		return AUTH_TOKEN_TYPE;
 	}
@@ -84,12 +103,14 @@ public class GTasksManager {
 		return null;
 	}
 	
-	public void deleteTask(String listId, String taskId) {
+	public boolean deleteTask(String listId, String taskId) {
 		try {
 			tasksService.tasks().delete(listId, taskId).execute();
+			return true;
 		} catch (IOException e) {
 			handleException(e);		
 		}
+		return false;
 	}
 	
 	/**
@@ -158,25 +179,26 @@ public class GTasksManager {
 	 * */
 	public String getListId(String listTitle) {
 		List<TaskList> taskLists = getAllTaskLists();
-		// Look in the tasks list for the list with the given title
-		for (TaskList tl : taskLists) {
-			if (tl.getTitle().equals(listTitle)) {
-				return tl.getId();
+		if (taskLists != null) {
+			// Look in the tasks list for the list with the given title
+			for (TaskList tl : taskLists) {
+				if (tl.getTitle().equals(listTitle)) {
+					return tl.getId();
+				}
 			}
 		}
 		return null;
 	}
 	
 	private List<TaskList> getAllTaskLists() {
-		List<TaskList> tasksList = new ArrayList<TaskList>();
+		List<TaskList> tasksList = null;
 		try {
 			Tasks.Tasklists.List listsReq = tasksService.tasklists().list();
 			// Only return the id and title of every list (to improve performance)
-			//listsReq.setFields("items(id,title)");
+			listsReq.setFields("items(id,title)");
 			tasksList = listsReq.execute().getItems();
 		} catch (IOException e) {
 			handleException(e);
-			return null;
 		}
 		return tasksList;
 	}

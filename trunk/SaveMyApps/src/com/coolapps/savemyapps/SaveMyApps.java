@@ -62,40 +62,13 @@ public class SaveMyApps extends ListActivity {
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Check if the device is connected to the internet
-        checkNetworkAvailability();
-	}
-	
-	/**
-	 * Checks if the device is currently connected to the internet, if so continue with
-	 * the operations, if not show an error message and close the application. 
-	 * */
-	private void checkNetworkAvailability() {
-	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwInfo = cm.getActiveNetworkInfo();
-        if (activeNetwInfo != null) {
-            if (!activeNetwInfo.isConnected()) {
-            	showDialog(CON_ERROR_DIALOG);
-            }
-            startOperations();
-        }
-        else {
-        	showDialog(CON_ERROR_DIALOG);;
-        }
-	}
-	
-	/**
-	 * This method is called when the app is connected to the internet to set
-	 * up the global variables and start the app operations.
-	 * */
-	private void startOperations() {
         // Set the view assigned to this activity
         this.setContentView(R.layout.apps_list);
         // Create an account manager to handle the user google accounts
         accountManager = new GoogleAccountManager(this);
         // Create a tasks manager to communicate with the Google Tasks Service
         gTasksManager = new GTasksManager(this);
-        chooseAccount(true);
+        chooseAccount(false);
 	}
 
 	/**
@@ -150,18 +123,8 @@ public class SaveMyApps extends ListActivity {
 		            	} else if (bundle.containsKey(AccountManager.KEY_AUTHTOKEN)) {
 		                    // Set a new access token
 		            		gTasksManager.setAccessToken(bundle.getString(AccountManager.KEY_AUTHTOKEN));
-		                    // Create the default list where the app names will be saved 
-		                    // (if it doesn't exists)
-		            		// TODO: do this better
-		            		// TODO change the listExists param by ID
-		            		String listId = gTasksManager.getListId(SaveMyApps.DEFAULT_LIST_NAME);
-		            		if (listId == null) {
-		            			gTasksManager.createTaskList(SaveMyApps.DEFAULT_LIST_NAME);	
-		            		} else {
-		            			SaveMyApps.this.DEFAULT_LIST_ID = listId;
-		            		}
-		                    // Create a new async task to load the apps list
-		                    new AppsListLoader(SaveMyApps.this).execute();
+		                    // Check if the device is connected to the internet
+		                    loadAppsList();
 		            	}						
 					} catch (OperationCanceledException e) {
 						e.printStackTrace();
@@ -174,6 +137,33 @@ public class SaveMyApps extends ListActivity {
 	    }, null);
 	}
 	
+	
+	/**
+	 * Checks if the device is currently connected to the internet, if not 
+	 * shows an error message and closes the application. 
+	 * 
+	 *  @return true is the device is connected to teh internet, false if not.
+	 * */
+	private boolean networkActive() {
+	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwInfo = cm.getActiveNetworkInfo();
+        if (activeNetwInfo != null && activeNetwInfo.isConnected()) {
+            return true;
+        }
+        showDialog(CON_ERROR_DIALOG);
+        return false;
+	}
+	
+	/**
+	 * Loads the apps list to teh UI.
+	 * */
+	private void loadAppsList() {
+		if (networkActive() && gTasksManager.tasksServiceUp()) {
+			// Create a new async task to load the apps list
+			new AppsListLoader(SaveMyApps.this).execute();
+		}
+	}
+
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -200,7 +190,7 @@ public class SaveMyApps extends ListActivity {
 			       .setCancelable(false)
 			       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
 			           public void onClick(DialogInterface dialog, int id) {
-			                SaveMyApps.this.finish();
+			        	   dialog.dismiss();
 			           }
 			       });
 				break;
@@ -219,12 +209,16 @@ public class SaveMyApps extends ListActivity {
 	 * */
 	@SuppressWarnings("unchecked")
 	public void saveApps(View view) {
-		AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
-		// Get the apps that are selected (checkboxs are checked)
-		ArrayList<AppInfo> appsToSave = listAdapter.getCheckedApps();
-		// Create a new thread that will save the apps in the server
-		AppsSynchronizer syncThread = new AppsSynchronizer(this, SyncType.SAVE);
-		syncThread.execute(appsToSave);
+		if (networkActive()) {
+			AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
+			// Get the apps that are selected (checkboxs are checked)
+			ArrayList<AppInfo> appsToSave = listAdapter.getCheckedApps();
+			// Create a new thread that will save the apps in the server
+			AppsSynchronizer syncThread = new AppsSynchronizer(this, SyncType.SAVE);
+			syncThread.execute(appsToSave);
+		} else {
+			showDialog(CON_ERROR_DIALOG);
+		}
 	}
 
 	/**
@@ -234,12 +228,16 @@ public class SaveMyApps extends ListActivity {
 	 * */
 	@SuppressWarnings("unchecked")
 	public void unsaveApps(View view) {
-		AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
-		// Get the apps that are selected (checkboxs are checked)
-		ArrayList<AppInfo> appsToUnsave = listAdapter.getCheckedApps();
-		// Create a new thread that will delete the apps from the server
-		AppsSynchronizer syncThread = new AppsSynchronizer(this, SyncType.UNSAVE);
-		syncThread.execute(appsToUnsave);
+		if (networkActive()) {
+			AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
+			// Get the apps that are selected (checkboxs are checked)
+			ArrayList<AppInfo> appsToUnsave = listAdapter.getCheckedApps();
+			// Create a new thread that will delete the apps from the server
+			AppsSynchronizer syncThread = new AppsSynchronizer(this, SyncType.UNSAVE);
+			syncThread.execute(appsToUnsave);
+		} else {
+			showDialog(CON_ERROR_DIALOG);
+		}
 	} 
 
 	/**
@@ -271,7 +269,7 @@ public class SaveMyApps extends ListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 			case R.id.refresh:
-				new AppsListLoader(this).execute();
+				loadAppsList();
 				return true;
 			//TODO uncomment when I have a help dialog
 			/*case R.id.help:
