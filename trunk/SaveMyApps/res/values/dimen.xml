@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-	Copyright 2011 Franco Sabadini - fsabadi@gmail.com
+	Copyright 2011 Franco Sabadini
 
 	Licensed under the Apache License, Version 2.0 (the "License");
    	you may not use this file except in compliance with the License.
@@ -14,20 +14,12 @@
    	See the License for the specific language governing permissions and
    	limitations under the License.
 -->
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-	<item 
-		android:id="@+id/refresh"
-    	android:icon="@drawable/ic_menu_refresh"
-        android:title="@string/refresh" 
-    />
-    <item 
-		android:id="@+id/help"
-    	android:icon="@drawable/ic_menu_help"
-        android:title="@string/help" 
-    />
-	<item 
-		android:id="@+id/exit"
-    	android:icon="@drawable/ic_menu_exit"
-        android:title="@string/exit" 
-    />    
-</menu>
+<resources>	
+	<dimen name="text_size">35px</dimen>
+	<dimen name="checkbox_left_marg">4px</dimen>
+	<dimen name="checkbox_right_marg">10px</dimen>
+	<dimen name="image_width">42px</dimen>
+	<dimen name="image_left_marg">4px</dimen>
+	<dimen name="image_right_marg">8px</dimen>
+	<dimen name="help_dialog_padding">10dp</dimen>
+</resources>
