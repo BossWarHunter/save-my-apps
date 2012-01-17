@@ -19,9 +19,6 @@ package com.coolapps.savemyapps;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import com.coolapps.savemyapps.AppsSynchronizer.SyncType;
-import com.google.api.client.googleapis.extensions.android2.auth.GoogleAccountManager;
-
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
@@ -38,19 +35,23 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
+
+import com.coolapps.savemyapps.AppsSynchronizer.SyncType;
+import com.google.api.client.googleapis.extensions.android2.auth.GoogleAccountManager;
 
 
 public class SaveMyApps extends ListActivity {
     
 	private static final int ACCOUNTS_DIALOG = 0;
 	private static final int CON_ERROR_DIALOG = 1;
-	//TODO uncomment when I have a help dialog
-	//private static final int HELP_DIALOG = 2;
+	private static final int HELP_DIALOG = 2;
 	private static final String PREFS_NAME = "SaveMyAppsPrefs";
 	private static final int REQUEST_AUTH = 0;
 	//TODO: change the default list for a specific one
@@ -58,7 +59,7 @@ public class SaveMyApps extends ListActivity {
 	public static String DEFAULT_LIST_NAME = "SaveMyAppsDefaultList";
 	private GoogleAccountManager accountManager;
 	public GTasksManager gTasksManager;
-		
+	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -194,10 +195,18 @@ public class SaveMyApps extends ListActivity {
 			           }
 			       });
 				break;
-			//TODO uncomment when I have a help dialog
-			/*case HELP_DIALOG:
-				
-				break;*/
+			case HELP_DIALOG:
+				LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
+				View helpDialogView = inflater.inflate(R.layout.help_dialog,
+				                               (ViewGroup) findViewById(R.id.help_dialog));
+				builder.setTitle(R.string.help_dialog_title);
+				builder.setView(helpDialogView).setPositiveButton("OK", 
+					new DialogInterface.OnClickListener() {
+			           public void onClick(DialogInterface dialog, int id) {
+			        	   dialog.dismiss();
+			           }
+			       });;
+				break;
 		}
 		return builder.create();
 	}
@@ -271,10 +280,9 @@ public class SaveMyApps extends ListActivity {
 			case R.id.refresh:
 				loadAppsList();
 				return true;
-			//TODO uncomment when I have a help dialog
-			/*case R.id.help:
+			case R.id.help:
 				showDialog(HELP_DIALOG);
-				return true;*/
+				return true;
 			case R.id.exit:
 				this.finish();
 				return true;

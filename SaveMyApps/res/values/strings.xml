@@ -16,8 +16,8 @@
 -->
 <resources>
     <string name="app_name">Save My Apps</string>
-	<string name="save_apps_button">Save Apps</string>
-	<string name="unsave_apps_button">Unsave Apps</string>
+	<string name="save_apps_button">Save Apps To Server</string>
+	<string name="unsave_apps_button">Remove Apps From Server</string>
 	<string name="select_all">Select All</string>
 	<string name="account_dialog_title">Select a Google account</string>
 	<string name="con_error_dialog_title">Connection Error</string>
@@ -28,11 +28,34 @@
 	<string name="help">Help</string>
 	<string name="refresh">Refresh</string>
 	<string name="exit">Exit</string>
-	
-	<dimen name="text_size">35px</dimen>
-	<dimen name="checkbox_left_marg">4px</dimen>
-	<dimen name="checkbox_right_marg">10px</dimen>
-	<dimen name="image_width">42px</dimen>
-	<dimen name="image_left_marg">4px</dimen>
-	<dimen name="image_right_marg">8px</dimen>
+	<string name="help_dialog_title">How to use this app:</string>
+	<string name="help_dialog_text_1">
+	    1- Choose a Google account to which synchronize your applications information 
+	    (The apps info will be saved in a new task list called \"SaveMyAppsDefaultList\" 
+	    in your account, you can later access this list on your browser by accessing 
+	    to your GMail account).\n\n
+	    2- Choose an app (or a group of them) by checking or un-checking the 
+	    checkboxes on the right side.\n\n
+	    3- Press the corresponding button (located on the top) to the action you 
+	    want to perform on the chosen apps (\"Save Apps To Server\" or 
+	    \"Remove Apps From Server\", when I say \"server\" I mean your GMail account, 
+	    since that is where the apps information will be saved as mentioned earlier).\n\n
+		* References:
+	</string>
+	<string name="help_dialog_text_2">
+	    \nIndicates that the information of the app listed next to it is already 
+	    saved in the server. 
+	</string>
+	<string name="help_dialog_text_3">
+	    \nIndicates that the information of the app listed next to it is NOT 
+	    saved in the server. 
+	</string>
+	<string name="help_dialog_text_4">
+	    \n* What will come:\n\n
+	    \tI have several new features that I have in mind and I\'ll be adding to the 
+	    app as soon as I have time to work on them so stay tuned :-).\n\n
+	    * Feedback:\n\n
+	    \tIf you have any suggestions, complaints or whatever about the app you 
+	    can contact me by email to cool.apps.android@gmail.com
+	</string>	
 </resources>
