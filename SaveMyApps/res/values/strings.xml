@@ -28,7 +28,7 @@
 	<string name="help">Help</string>
 	<string name="refresh">Refresh</string>
 	<string name="exit">Exit</string>
-	<string name="help_dialog_title">How to use this app:</string>
+	<string name="help_dialog_title">How to use this app</string>
 	<string name="help_dialog_text_1">
 	    1- Choose a Google account to which synchronize your applications information 
 	    (The apps info will be saved in a new task list called \"SaveMyAppsDefaultList\" 
@@ -56,6 +56,6 @@
 	    app as soon as I have time to work on them so stay tuned :-).\n\n
 	    * Feedback:\n\n
 	    \tIf you have any suggestions, complaints or whatever about the app you 
-	    can contact me by email to cool.apps.android@gmail.com
+	    can contact me by email at cool.apps.android@gmail.com
 	</string>	
 </resources>
