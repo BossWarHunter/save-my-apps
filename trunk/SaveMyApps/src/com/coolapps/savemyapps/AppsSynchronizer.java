@@ -1,4 +1,4 @@
-package com.coolapps.savemyapps;
+package com.cooldroidapps.savemyapps;
 
 /*
  * Copyright 2011 Franco Sabadini - fsabadi@gmail.com
@@ -17,6 +17,8 @@ package com.coolapps.savemyapps;
 **/
 
 import java.util.ArrayList;
+
+import com.cooldroidapps.savemyapps.R;
 
 import android.os.AsyncTask;
 import android.widget.Toast;

@@ -1,4 +1,4 @@
-package com.coolapps.savemyapps;
+package com.cooldroidapps.savemyapps;
 
 import java.io.Serializable;
 import java.util.Comparator;
