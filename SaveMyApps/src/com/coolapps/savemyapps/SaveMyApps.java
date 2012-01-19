@@ -1,4 +1,4 @@
-package com.coolapps.savemyapps;
+package com.cooldroidapps.savemyapps;
 
 /*
  * Copyright 2011 Franco Sabadini - fsabadi@gmail.com
@@ -43,7 +43,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 
-import com.coolapps.savemyapps.AppsSynchronizer.SyncType;
+import com.cooldroidapps.savemyapps.R;
+import com.cooldroidapps.savemyapps.AppsSynchronizer.SyncType;
 import com.google.api.client.googleapis.extensions.android2.auth.GoogleAccountManager;
 
 

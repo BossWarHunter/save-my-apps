@@ -1,4 +1,4 @@
-package com.coolapps.savemyapps;
+package com.cooldroidapps.savemyapps;
 
 /*
  * Copyright 2011 Franco Sabadini - fsabadi@gmail.com
