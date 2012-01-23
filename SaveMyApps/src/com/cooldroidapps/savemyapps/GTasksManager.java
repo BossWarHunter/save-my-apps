@@ -146,9 +146,11 @@ public class GTasksManager {
 			// a max of 100 results)
 			do {
 				com.google.api.services.tasks.model.Tasks tasksResp = tasksReq.execute();
-				allResults.addAll(tasksResp.getItems());
-				nextPageToken = tasksResp.getNextPageToken();
-				tasksReq.setPageToken(nextPageToken);
+				if (tasksResp != null) {
+				    allResults.addAll(tasksResp.getItems());
+				    nextPageToken = tasksResp.getNextPageToken();
+				    tasksReq.setPageToken(nextPageToken);
+				}
 			} while (nextPageToken != null);			
 			return allResults;
 		} catch (IOException e) {
