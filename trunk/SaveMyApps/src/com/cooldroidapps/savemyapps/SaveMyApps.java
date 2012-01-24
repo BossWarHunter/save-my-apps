@@ -139,12 +139,11 @@ public class SaveMyApps extends ListActivity {
 	    }, null);
 	}
 	
-	
 	/**
 	 * Checks if the device is currently connected to the internet, if not 
-	 * shows an error message and closes the application. 
+	 * shows an error message. 
 	 * 
-	 *  @return true is the device is connected to teh internet, false if not.
+	 *  @return true is the device is connected to the internet, false if not.
 	 * */
 	private boolean networkActive() {
 	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
