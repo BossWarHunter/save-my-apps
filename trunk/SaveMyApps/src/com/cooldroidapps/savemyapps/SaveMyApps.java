@@ -257,13 +257,15 @@ public class SaveMyApps extends ListActivity {
 	 * */
 	public void updateCkeck(View selectAllCheckBox) {
 		AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
-		if (((CheckBox)selectAllCheckBox).isChecked()) { 
-			// Check all the apps on the list
-			listAdapter.updateCheckState(true);
-		}
-		else {
-			// Un-check all the apps on the list
-			listAdapter.updateCheckState(false);
+		if (listAdapter != null) {
+			if (((CheckBox)selectAllCheckBox).isChecked()) { 
+				// Check all the apps on the list
+				listAdapter.updateCheckState(true);
+			}
+			else {
+				// Un-check all the apps on the list
+				listAdapter.updateCheckState(false);
+			}
 		}
 	}
 
