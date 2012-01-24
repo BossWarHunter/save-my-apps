@@ -136,21 +136,26 @@ public class GTasksManager {
 	private List<Task> getTasks(String listId) {
 		try {
 			List<Task> allResults = new ArrayList<Task>();
+			String nextPageToken = null;
 			Tasks.TasksOperations.List tasksReq = tasksService.tasks().list(listId);
+			com.google.api.services.tasks.model.Tasks tasksResp;
+			List<Task> items = null;
 			// Only return the id and title of every task (to improve performance),
 			// and the token to get the next page of results (in case there are more
 			// than 100 results)
 			tasksReq.setFields("nextPageToken,items(id,title)");
-			com.google.api.services.tasks.model.Tasks tasksResp = tasksReq.execute();
-			List<Task> items = tasksResp.getItems();
 			// Iterate to get all the results while there are pages (each page contains
 			// a max of 100 results)
-			while (items != null) {
-				allResults.addAll(items);
-				tasksReq.setPageToken(tasksResp.getNextPageToken());
+			do {
 				tasksResp = tasksReq.execute();
 				items = tasksResp.getItems();
-			} 
+				// If the list is not empty
+				if (items != null) {
+					allResults.addAll(items);
+				}
+				nextPageToken = tasksResp.getNextPageToken();
+				tasksReq.setPageToken(nextPageToken);
+			} while (nextPageToken != null);
 			return allResults;
 		} catch (IOException e) {
 			handleException(e);
