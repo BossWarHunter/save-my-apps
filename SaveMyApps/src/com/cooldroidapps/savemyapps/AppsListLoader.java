@@ -50,10 +50,10 @@ public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>> {
         // (if it doesn't exists)
 		// TODO: do this better
 		// TODO change the listExists param by ID		            		
-		String listId = mainActivity.gTasksManager.getListId(SaveMyApps.DEFAULT_LIST_NAME);
+		String listId = mainActivity.getGTasksManager().getListId(SaveMyApps.DEFAULT_LIST_NAME);
 		// If the list is not created in teh server
 		if (listId == null) {
-			mainActivity.gTasksManager.createTaskList(SaveMyApps.DEFAULT_LIST_NAME);	
+			mainActivity.getGTasksManager().createTaskList(SaveMyApps.DEFAULT_LIST_NAME);	
 		} else {
 			mainActivity.DEFAULT_LIST_ID = listId;
 		}
@@ -79,7 +79,7 @@ public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>> {
 		// Get the list of apps installed on the device
 		ArrayList<AppInfo> allApps = getInstalledApps();
 		// Get the list of apps saved on the server
-        ArrayList<AppInfo> savedApps = mainActivity.gTasksManager.getSavedApps();
+        ArrayList<AppInfo> savedApps = mainActivity.getGTasksManager().getSavedApps();
         // Merge the 2 list of apps
         int savedPassNum = savedApps.size();
         for (int i=0; i<savedPassNum; i++) {
@@ -108,16 +108,20 @@ public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>> {
 	    for (int i=0; i<appsList.size(); i++) {
 	    	ApplicationInfo app = appsList.get(i);
 	        String appName = app.loadLabel(packageManager).toString();
-	        // If the appName is a real app and not a package name
-	        if (!appName.contains(".")) {
-	        	// TODO: add package name?
-		        //newInfo.pname = p.packageName;
+	        // If the appName is not a system app 
+	        // (didn't come pre-installed on the device)
+	        if (!isSystemApp(app.flags)) {
 	        	AppInfo appInfo = new AppInfo(appName);
+		        appInfo.setPackageName(app.packageName);
 		        appInfo.setInstalled(true);
 		        installedApps.add(appInfo);
 	        }
 	    }
 	    return installedApps; 
+	}
+	
+	private boolean isSystemApp(int appFlags) {
+		 return ((appFlags & ApplicationInfo.FLAG_SYSTEM) != 0);
 	}
 
 }

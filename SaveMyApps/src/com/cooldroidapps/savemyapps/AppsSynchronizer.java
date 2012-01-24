@@ -70,13 +70,14 @@ public class AppsSynchronizer extends AsyncTask<ArrayList<AppInfo>, AppInfo, Voi
 	}	
 	
 	private void saveApps(ArrayList<AppInfo> appsToSave) {
-		GTasksManager gTasksManager = mainActivity.gTasksManager;
+		GTasksManager gTasksManager = mainActivity.getGTasksManager();
 		for (int i=0; i < appsToSave.size(); i++) {
 			AppInfo appInfo = appsToSave.get(i);
 			// If the app name is not saved on the server
 			if (!appInfo.isSaved()) { 
-				String savedTaskId = gTasksManager.createTask(mainActivity.DEFAULT_LIST_ID, 
-						appInfo.getName());
+				String savedTaskId = gTasksManager.createTask(
+						mainActivity.DEFAULT_LIST_ID, appInfo.getName(), 
+						appInfo.getPackageName());
 				// If the app was successfully saved in the server
 				if (savedTaskId != null) {
 					// Set the ID given by the tasks service (if the state is true)
@@ -89,7 +90,7 @@ public class AppsSynchronizer extends AsyncTask<ArrayList<AppInfo>, AppInfo, Voi
 	}
 	
 	private void unsaveApps(ArrayList<AppInfo> appsToUnsave) {
-		GTasksManager gTasksManager = mainActivity.gTasksManager;
+		GTasksManager gTasksManager = mainActivity.getGTasksManager();
 		for (int i=0; i < appsToUnsave.size(); i++) {
 			AppInfo appInfo = appsToUnsave.get(i);
 			// If the app name is saved on the server

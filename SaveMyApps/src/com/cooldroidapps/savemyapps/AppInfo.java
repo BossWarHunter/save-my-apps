@@ -24,14 +24,15 @@ public class AppInfo implements Comparable<AppInfo> {
 	 * */
 	private String id;
 	private String name;
-	// TODO: add set and get for packageName
-	//private String packageName;
+	private String packageName;
 	private boolean saved;
 	private boolean installed;
 	private boolean selected;
 	
 	public AppInfo(String name) {
+		this.id = null;
 		this.name = name;
+		this.packageName = null;
 		this.saved = false;
 		this.installed = false;
 		this.selected = false;
@@ -51,6 +52,14 @@ public class AppInfo implements Comparable<AppInfo> {
 	
 	public String getName() {
 		return this.name;
+	}
+	
+	public void setPackageName(String packageName) {
+		this.packageName = packageName;
+	}
+
+	public String getPackageName() {
+		return packageName;
 	}
 	
 	public void setSaved(boolean saved) {
@@ -79,7 +88,21 @@ public class AppInfo implements Comparable<AppInfo> {
 	
 	@Override
 	public boolean equals(Object o) {
-		return this.name.equals(((AppInfo)o).getName());
+		AppInfo anotherAppInfo = (AppInfo)o;
+		// If both objects have IDs then compare with that
+		if (id != null && anotherAppInfo.getId() != null) {
+			return id.equals(anotherAppInfo.getId());
+		} else {
+			// If one or more of the objects don't have an ID then compare
+			// using the package name
+			if (packageName != null && anotherAppInfo.getPackageName() != null) {
+				return packageName.equals(anotherAppInfo.getPackageName());
+			}
+		}
+		// If one or more of the objects don't have an id or a package name
+		// decide that they are not the same (I decided not to compare by name
+		// because different apps can have the exact same name)
+		return false;
 	}
 
 	public int compareTo(AppInfo anotherAppInfo) {
