@@ -59,7 +59,7 @@ public class SaveMyApps extends ListActivity {
 	public String DEFAULT_LIST_ID = "";
 	public static String DEFAULT_LIST_NAME = "SaveMyAppsDefaultList";
 	private GoogleAccountManager accountManager;
-	public GTasksManager gTasksManager;
+	private GTasksManager gTasksManager;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -291,6 +291,10 @@ public class SaveMyApps extends ListActivity {
 			default:
 		        return super.onOptionsItemSelected(item);
 		}
+	}
+	
+	public GTasksManager getGTasksManager() {
+		return this.gTasksManager;
 	}
 	
 }

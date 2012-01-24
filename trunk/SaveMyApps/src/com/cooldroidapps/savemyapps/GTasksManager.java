@@ -92,10 +92,11 @@ public class GTasksManager {
 		return accessProtectedResource.getAccessToken();
 	}
 	
-	public String createTask(String listId, String taskTitle) {
+	public String createTask(String listId, String taskTitle, String taskNotes) {
 		try {
 			Task task = new Task();
 			task.setTitle(taskTitle);
+			task.setNotes(taskNotes);
 			return tasksService.tasks().insert(listId, task).execute().getId();
 		} catch (IOException e) {
 			handleException(e);
@@ -122,8 +123,11 @@ public class GTasksManager {
 		List<Task> tasks = getTasks(mainActivity.DEFAULT_LIST_ID);
 		if (tasks != null) {
 			for (Task task : tasks) {
-				AppInfo appInfo = new AppInfo(task.getTitle());
-				// Set the task id
+				AppInfo appInfo = new AppInfo(task.getTitle().trim());
+				String packageName = task.getNotes();
+				if (packageName != null) {
+					appInfo.setPackageName(packageName.trim());	
+				}
 				appInfo.setId(task.getId());
 				appInfo.setSaved(true);
 				savedApps.add(appInfo);
@@ -131,7 +135,6 @@ public class GTasksManager {
 		} 
 		return savedApps;
 	}
-
 	
 	private List<Task> getTasks(String listId) {
 		try {
@@ -143,7 +146,7 @@ public class GTasksManager {
 			// Only return the id and title of every task (to improve performance),
 			// and the token to get the next page of results (in case there are more
 			// than 100 results)
-			tasksReq.setFields("nextPageToken,items(id,title)");
+			tasksReq.setFields("nextPageToken,items(id,title,notes)");
 			// Iterate to get all the results while there are pages (each page contains
 			// a max of 100 results)
 			do {
