@@ -27,6 +27,7 @@
 	<string name="sync_end_message">The synchronization finished...</string>
 	<string name="help">Help</string>
 	<string name="refresh">Refresh</string>
+	<string name="share">Share</string>
 	<string name="exit">Exit</string>
 	<string name="help_dialog_title">How to use this app</string>
 	<string name="help_dialog_text_1">
@@ -58,4 +59,9 @@
 	    \tIf you have any suggestions, complaints or whatever about the app you 
 	    can contact me by email at cool.apps.android@gmail.com
 	</string>	
+	<string name="share_dialog_title">Share using...</string>
+	<string name="share_subject">List of Android applications</string>
+	<string name="share_body_title">List of applications information:</string>
+	<string name="share_body_app_name">\n\nName:</string>
+	<string name="share_body_app_pckname">\nPackage Name:</string>
 </resources>

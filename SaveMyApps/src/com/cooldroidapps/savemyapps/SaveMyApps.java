@@ -219,14 +219,11 @@ public class SaveMyApps extends ListActivity {
 	@SuppressWarnings("unchecked")
 	public void saveApps(View view) {
 		if (networkActive()) {
-			AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
 			// Get the apps that are selected (checkboxs are checked)
-			ArrayList<AppInfo> appsToSave = listAdapter.getCheckedApps();
+			ArrayList<AppInfo> appsToSave = getCheckedApps();
 			// Create a new thread that will save the apps in the server
 			AppsSynchronizer syncThread = new AppsSynchronizer(this, SyncType.SAVE);
 			syncThread.execute(appsToSave);
-		} else {
-			showDialog(CON_ERROR_DIALOG);
 		}
 	}
 
@@ -238,15 +235,12 @@ public class SaveMyApps extends ListActivity {
 	@SuppressWarnings("unchecked")
 	public void unsaveApps(View view) {
 		if (networkActive()) {
-			AppsListAdapter listAdapter = (AppsListAdapter) getListAdapter();
 			// Get the apps that are selected (checkboxs are checked)
-			ArrayList<AppInfo> appsToUnsave = listAdapter.getCheckedApps();
+			ArrayList<AppInfo> appsToUnsave = getCheckedApps();
 			// Create a new thread that will delete the apps from the server
 			AppsSynchronizer syncThread = new AppsSynchronizer(this, SyncType.UNSAVE);
 			syncThread.execute(appsToUnsave);
-		} else {
-			showDialog(CON_ERROR_DIALOG);
-		}
+		} 
 	} 
 
 	/**
@@ -282,6 +276,9 @@ public class SaveMyApps extends ListActivity {
 			case R.id.refresh:
 				loadAppsList();
 				return true;
+			case R.id.share:
+				shareCheckedApps(getCheckedApps());
+				return true;
 			case R.id.help:
 				showDialog(HELP_DIALOG);
 				return true;
@@ -290,6 +287,70 @@ public class SaveMyApps extends ListActivity {
 				return true;
 			default:
 		        return super.onOptionsItemSelected(item);
+		}
+	}
+	
+	/**
+	 * Shares information about the apps chosen by the user, using 
+	 * any of the sharing apps installed on the device that allow text 
+	 * sharing.
+	 * 
+	 * @param appsToShare
+	 * 			List of apps which information will be shared.
+	 * */
+	private void shareCheckedApps(ArrayList<AppInfo> appsToShare) {
+		// Create an intent to connect to the sharing app 
+		Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+		// Set the type of content that will be shared (this way Android filters
+		// the apps that can share this type of content and only shows those
+		// as options for the user)
+		sharingIntent.setType("text/plain");
+		// Set the subject (only available for some apps like GMail)
+		sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, 
+				getString(R.string.share_subject));
+		// Set the text that will be shared
+		sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, 
+				getAppsInfoToShare(appsToShare));
+		// Create and show the share apps chooser
+		startActivity(Intent.createChooser(sharingIntent, 
+				getString(R.string.share_dialog_title)));
+	}
+	
+	/**
+	 * Get the inforamtion to share from the apps info list and put
+	 * it in a string with a "user friendly" format.
+	 * 
+	 * @param appsToShare
+	 * 			List of apps information.
+	 * 
+	 * @return Apps information in a String with user friendly format.
+	 * */
+	private String getAppsInfoToShare(ArrayList<AppInfo> appsToShare) {
+		// StringBuilder is used instead of String because it has better
+		// performance when appending a lot of strings
+		StringBuilder stringBuilder = new StringBuilder(
+				getString(R.string.share_body_title));
+		for (AppInfo appInfo : appsToShare) {
+			stringBuilder.append(getString(R.string.share_body_app_name) + 
+					" " + appInfo.getName()).append(
+					getString(R.string.share_body_app_pckname) + " " + 
+					appInfo.getPackageName());
+		}
+		return stringBuilder.toString();
+	}
+	
+	/**
+	 * Returns the list of apps chosen by the user, or an empty list 
+	 * if non is chosen (or if there is no list adapter assigned to 
+	 * the list activity).
+	 * */
+	private ArrayList<AppInfo> getCheckedApps() {
+		AppsListAdapter appsListAdapter = (AppsListAdapter) getListAdapter();
+		// If there is a list adapter assigned to the list activity
+		if (appsListAdapter != null) {
+			return appsListAdapter.getCheckedApps();
+		} else {
+			return new ArrayList<AppInfo>();
 		}
 	}
 	
