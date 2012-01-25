@@ -20,7 +20,12 @@
     	android:icon="@drawable/ic_menu_refresh"
         android:title="@string/refresh" 
     />
-    <item 
+	<item 
+		android:id="@+id/share"
+    	android:icon="@drawable/ic_menu_share"
+        android:title="@string/share" 
+    />
+	<item 
 		android:id="@+id/help"
     	android:icon="@drawable/ic_menu_help"
         android:title="@string/help" 
