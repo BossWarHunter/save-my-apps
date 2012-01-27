@@ -16,19 +16,29 @@
 -->
 <resources>
     <string name="app_name">Save My Apps</string>
-	<string name="save_apps_button">Save Apps To Server</string>
+    <string name="preferences_label">Settings</string>
+    <string name="save_apps_button">Save Apps To Server</string>
 	<string name="unsave_apps_button">Remove Apps From Server</string>
 	<string name="select_all">Select All</string>
 	<string name="account_dialog_title">Select a Google account</string>
+	<!-- Sync dialogs and toasts -->
 	<string name="con_error_dialog_title">Connection Error</string>
-	<string name="con_error_message">You seem to not be connected to the internet. Please check your connection and try again.</string>
-	<string name="loading_list_title">Loading Apps List...This could take a while, please be patient.</string>
+	<string name="positive_button">OK</string>
+    <string name="con_error_message">
+        No Internet connection. Please check your connection and try again.
+    </string>
+	<string name="loading_list_title">
+	    Loading Apps List...This could take a while, please be patient.
+	</string>
 	<string name="sync_start_message">The synchronization has started...</string>
 	<string name="sync_end_message">The synchronization finished...</string>
+	<!-- Options menu -->
 	<string name="help">Help</string>
 	<string name="refresh">Refresh</string>
 	<string name="share">Share</string>
+	<string name="settings">Settings</string>
 	<string name="exit">Exit</string>
+	<!-- Help dialog -->
 	<string name="help_dialog_title">How to use this app</string>
 	<string name="help_dialog_text_1">
 	    1- Choose a Google account to which synchronize your applications information 
@@ -52,16 +62,36 @@
 	    saved in the server. 
 	</string>
 	<string name="help_dialog_text_4">
-	    \n* What will come:\n\n
-	    \tI have several new features that I have in mind and I\'ll be adding to the 
-	    app as soon as I have time to work on them so stay tuned :-).\n\n
+	    \n* Extra functionality:\n\n
+		1- Want to refresh the apps list? Sure, just go to the options menu and press 
+		the \"Refresh\" button.\n\n 
+		2- Want to share one or more apps with your friends? No problem, just choose 
+		them (by checking the checkboxes on the right side), then go to the options 
+		menu and press the \"Share\" button, after that choose the app you want to use 
+		to share the information (Messaging, GMail, etc.) and use it.\n\n 
+	    * What will come:\n\n
+	    \tI have several new features in mind that I\'ll be adding to the 
+	    app as soon as I have the time to work on them so stay tuned :-).\n\n
 	    * Feedback:\n\n
 	    \tIf you have any suggestions, complaints or whatever about the app you 
 	    can contact me by email at cool.apps.android@gmail.com
-	</string>	
+	</string>
+	<!-- Share dialog -->	
 	<string name="share_dialog_title">Share using...</string>
 	<string name="share_subject">List of Android applications</string>
 	<string name="share_body_title">List of applications information:</string>
-	<string name="share_body_app_name">\n\nName:</string>
-	<string name="share_body_app_pckname">\nPackage Name:</string>
+	<string name="share_body_app_name">Name:</string>
+	<string name="share_body_app_pckname">Package Name:</string>
+	<!-- Settings layout -->
+	<string name="share_pref_title">Share Settings</string>
+	<string name="share_pref_labels_key">share_labels</string>
+	<string name="share_pref_labels_title">Use Labels</string>
+	<string name="share_pref_labels_sum">
+	    Add labels to the shared information (\"Name:\", \"Package Name:\", etc.)
+	</string>
+	<string name="share_pref_app_name_key">share_app_name</string>
+	<string name="share_pref_app_name_title">Share App Name</string>
+	<string name="share_pref_app_pckname_key">share_app_pckname</string>
+	<string name="share_pref_app_pckname_title">Share App Package Name</string>
+	<string name="accounts_pref_title">Account Settings</string>	
 </resources>

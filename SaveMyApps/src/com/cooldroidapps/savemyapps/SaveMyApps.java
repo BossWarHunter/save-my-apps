@@ -35,6 +35,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -279,6 +280,11 @@ public class SaveMyApps extends ListActivity {
 			case R.id.share:
 				shareCheckedApps(getCheckedApps());
 				return true;
+			case R.id.settings:
+				// Call the settings activity
+				Intent intent = new Intent(this, Preferences.class);
+				startActivity(intent);
+				return true;
 			case R.id.help:
 				showDialog(HELP_DIALOG);
 				return true;
@@ -317,7 +323,7 @@ public class SaveMyApps extends ListActivity {
 	}
 	
 	/**
-	 * Get the inforamtion to share from the apps info list and put
+	 * Get the information to share from the apps info list and put
 	 * it in a string with a "user friendly" format.
 	 * 
 	 * @param appsToShare
@@ -326,15 +332,34 @@ public class SaveMyApps extends ListActivity {
 	 * @return Apps information in a String with user friendly format.
 	 * */
 	private String getAppsInfoToShare(ArrayList<AppInfo> appsToShare) {
+		// Get the user settings to find out what he/she wants to share
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		boolean useLabels = settings.getBoolean(
+				getString(R.string.share_pref_labels_key), false);
+		boolean shareName = settings.getBoolean(
+				getString(R.string.share_pref_app_name_key), false);
+		boolean sharePckName = settings.getBoolean(
+				getString(R.string.share_pref_app_pckname_key), false);
 		// StringBuilder is used instead of String because it has better
 		// performance when appending a lot of strings
 		StringBuilder stringBuilder = new StringBuilder(
 				getString(R.string.share_body_title));
 		for (AppInfo appInfo : appsToShare) {
-			stringBuilder.append(getString(R.string.share_body_app_name) + 
-					" " + appInfo.getName()).append(
-					getString(R.string.share_body_app_pckname) + " " + 
-					appInfo.getPackageName());
+			stringBuilder.append("\n");
+			if (shareName) {
+				stringBuilder.append("\n");
+				if (useLabels) {
+					stringBuilder.append(getString(R.string.share_body_app_name) + " ");	
+				}
+				stringBuilder.append(appInfo.getName());	
+			}
+			if (sharePckName) {
+				stringBuilder.append("\n");
+				if (useLabels) {
+					stringBuilder.append(getString(R.string.share_body_app_pckname) + " ");
+				}
+				stringBuilder.append(appInfo.getPackageName());				
+			}
 		}
 		return stringBuilder.toString();
 	}
