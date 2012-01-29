@@ -16,8 +16,8 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.cooldroidapps.savemyapps"
-      android:versionCode="5"
-      android:versionName="1.2.1">
+      android:versionCode="6"
+      android:versionName="1.3.0">
     <uses-sdk android:minSdkVersion="8" />
     
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
@@ -38,6 +38,9 @@
         </activity>
         <activity android:name="com.cooldroidapps.savemyapps.Preferences"
             	  android:label="@string/preferences_label">
+        </activity>
+        <activity android:name="com.google.ads.AdActivity"
+            	  android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize">
         </activity>
 	</application>
 </manifest>
