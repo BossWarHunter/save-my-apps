@@ -44,7 +44,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 
-import com.cooldroidapps.savemyapps.R;
 import com.cooldroidapps.savemyapps.AppsSynchronizer.SyncType;
 import com.google.api.client.googleapis.extensions.android2.auth.GoogleAccountManager;
 
@@ -54,6 +53,10 @@ public class SaveMyApps extends ListActivity {
 	private static final int ACCOUNTS_DIALOG = 0;
 	private static final int CON_ERROR_DIALOG = 1;
 	private static final int HELP_DIALOG = 2;
+	private static final int SORT_DIALOG = 3;
+	public static final int SORT_APP_NAME = 0;
+	public static final int SORT_NOT_SAVED_FIRST = 1;
+	public static final int SORT_SAVED_FIRST = 2;
 	private static final String PREFS_NAME = "SaveMyAppsPrefs";
 	private static final int REQUEST_AUTH = 0;
 	//TODO: change the default list for a specific one
@@ -98,7 +101,6 @@ public class SaveMyApps extends ListActivity {
 	    showDialog(ACCOUNTS_DIALOG);
 	}
 	
-
 	/**
 	 * Once the user choosed an account to synchronize his/her data with
 	 * this method is called to get authorization to manage his/her
@@ -157,7 +159,7 @@ public class SaveMyApps extends ListActivity {
 	}
 	
 	/**
-	 * Loads the apps list to teh UI.
+	 * Loads the apps list to the UI.
 	 * */
 	private void loadAppsList() {
 		if (networkActive() && gTasksManager.tasksServiceUp()) {
@@ -196,6 +198,16 @@ public class SaveMyApps extends ListActivity {
 			           }
 			       });
 				break;
+			case SORT_DIALOG:
+				builder.setTitle(R.string.sort_dialog_title);
+	    		builder.setSingleChoiceItems(R.array.sort_dialog_list, 0, 
+	    			new DialogInterface.OnClickListener() {
+	    				public void onClick(DialogInterface dialog, int sortId) {
+	    					SortAppsList(sortId);
+	    					dialog.dismiss();
+	    				}
+	    			});
+	    		break;
 			case HELP_DIALOG:
 				LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
 				View helpDialogView = inflater.inflate(R.layout.help_dialog,
@@ -206,12 +218,24 @@ public class SaveMyApps extends ListActivity {
 			           public void onClick(DialogInterface dialog, int id) {
 			        	   dialog.dismiss();
 			           }
-			       });;
+			       });
 				break;
 		}
 		return builder.create();
 	}
 		
+	/**
+	 * Sorts the apps list according to the sort chosen by the user.
+	 * 
+	 * @param sortType
+	 * 			Sort type used to list the apps.
+	 * */
+	private void SortAppsList(int sortType) {
+		AppInfoComparator appInfoComparator = AppInfoComparator.getInstance();
+		appInfoComparator.setComparisonType(sortType);
+		((AppsListAdapter)getListAdapter()).sort(appInfoComparator);
+	}
+	
 	/**
 	 * Saves the selected apps on the server, if they are not already there.
 	 * 
@@ -241,9 +265,9 @@ public class SaveMyApps extends ListActivity {
 			// Create a new thread that will delete the apps from the server
 			AppsSynchronizer syncThread = new AppsSynchronizer(this, SyncType.UNSAVE);
 			syncThread.execute(appsToUnsave);
-		} 
-	} 
-
+		}
+	}
+	
 	/**
 	 * Verifies if the "Select All" checkbox is checked or not and update the checkbox 
 	 * state of all the apps on the list according to it.
@@ -278,7 +302,10 @@ public class SaveMyApps extends ListActivity {
 				loadAppsList();
 				return true;
 			case R.id.share:
-				shareCheckedApps(getCheckedApps());
+				shareAppsInfo(getCheckedApps());
+				return true;
+			case R.id.sort:
+				showDialog(SORT_DIALOG);
 				return true;
 			case R.id.settings:
 				// Call the settings activity
@@ -304,7 +331,7 @@ public class SaveMyApps extends ListActivity {
 	 * @param appsToShare
 	 * 			List of apps which information will be shared.
 	 * */
-	private void shareCheckedApps(ArrayList<AppInfo> appsToShare) {
+	private void shareAppsInfo(ArrayList<AppInfo> appsToShare) {
 		// Create an intent to connect to the sharing app 
 		Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
 		// Set the type of content that will be shared (this way Android filters
