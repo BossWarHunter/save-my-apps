@@ -14,26 +14,34 @@
    	See the License for the specific language governing permissions and
    	limitations under the License.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/lib/com.google.ads"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:padding="5dip">
-    <Button 
-    	android:text="@string/save_apps_button" 
-    	android:id="@+id/button2" 
-    	android:layout_width="match_parent" 
-    	android:layout_height="wrap_content"
-    	android:onClick="saveApps"
-    />
-    <Button 
-    	android:text="@string/unsave_apps_button" 
-    	android:id="@+id/button1" 
-    	android:layout_width="match_parent" 
-    	android:layout_height="wrap_content"
-    	android:onClick="unsaveApps"
-	/>
-	<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="fill_parent">    
+    <RelativeLayout 
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content">
+		<Button 
+	    	android:text="@string/save_apps_button" 
+	    	android:id="@+id/button2" 
+	    	android:layout_width="wrap_content" 
+	    	android:layout_height="wrap_content"
+	    	android:layout_alignParentLeft="true"
+			android:onClick="saveApps"
+	    />
+	    <Button 
+	    	android:text="@string/unsave_apps_button" 
+	    	android:id="@+id/button1" 
+	    	android:layout_width="wrap_content" 
+	    	android:layout_height="wrap_content"
+	    	android:layout_alignParentRight="true"
+			android:layout_toLeftOf="@+id/save_apps_button"
+			android:onClick="unsaveApps"
+		/>    
+	</RelativeLayout>
+	<RelativeLayout 
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content">
 		<TextView 
@@ -56,11 +64,29 @@
 			android:onClick="updateCkeck"
 		/>
 	</RelativeLayout>
-    <ListView 
-		android:id="@+id/android:list" 
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:textFilterEnabled="true"
-		android:choiceMode="multipleChoice"
-	/>
+	<RelativeLayout 
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content">
+		<com.google.ads.AdView 
+	        android:id="@+id/ad_view"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentBottom="true"
+	        android:background="#FF0000"
+	        ads:adUnitId="a14f230a9cc2981"
+	        ads:adSize="BANNER"
+	        ads:loadAdOnCreate="true"
+	        >
+	    </com.google.ads.AdView>
+		<ListView 
+		    android:id="@+id/android:list" 
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:textFilterEnabled="true"
+			android:choiceMode="multipleChoice"
+			android:layout_above="@id/ad_view"
+			android:fastScrollEnabled="true"
+			android:scrollbarDefaultDelayBeforeFade="1"
+		/>
+	</RelativeLayout>
 </LinearLayout>
