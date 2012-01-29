@@ -67,7 +67,7 @@ public class AppsListLoader extends AsyncTask<Void, Void, ArrayList<AppInfo>> {
 		// Create the list adapter that loads the apps list to the UI
 		AppsListAdapter listAdapter = new AppsListAdapter(mainActivity, appsList);
         // Order the apps list alphabetically
-        listAdapter.sort(new AppNameComparator());
+        listAdapter.sort(AppInfoComparator.getInstance());
         // Set the list adapter that loads the apps list to the UI
         mainActivity.setListAdapter(listAdapter);
 	}
