@@ -231,9 +231,12 @@ public class SaveMyApps extends ListActivity {
 	 * 			Sort type used to list the apps.
 	 * */
 	private void SortAppsList(int sortType) {
-		AppInfoComparator appInfoComparator = AppInfoComparator.getInstance();
-		appInfoComparator.setComparisonType(sortType);
-		((AppsListAdapter)getListAdapter()).sort(appInfoComparator);
+		AppsListAdapter appsListAdapter = (AppsListAdapter)getListAdapter();
+		if (appsListAdapter != null) {
+			AppInfoComparator appInfoComparator = AppInfoComparator.getInstance();
+			appInfoComparator.setComparisonType(sortType);
+			appsListAdapter.sort(appInfoComparator);
+		}
 	}
 	
 	/**
@@ -369,8 +372,7 @@ public class SaveMyApps extends ListActivity {
 				getString(R.string.share_pref_app_pckname_key), false);
 		// StringBuilder is used instead of String because it has better
 		// performance when appending a lot of strings
-		StringBuilder stringBuilder = new StringBuilder(
-				getString(R.string.share_body_title));
+		StringBuilder stringBuilder = new StringBuilder();
 		for (AppInfo appInfo : appsToShare) {
 			stringBuilder.append("\n");
 			if (shareName) {

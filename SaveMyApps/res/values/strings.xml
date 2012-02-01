@@ -83,7 +83,6 @@
 	<!-- Share dialog -->	
 	<string name="share_dialog_title">Share using...</string>
 	<string name="share_subject">List of Android applications</string>
-	<string name="share_body_title">List of applications information:</string>
 	<string name="share_body_app_name">Name:</string>
 	<string name="share_body_app_pckname">Package Name:</string>
 	
