@@ -20,28 +20,19 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">    
+    <Button 
+    	android:text="@string/save_apps_button" 
+    	android:layout_width="match_parent" 
+    	android:layout_height="wrap_content"
+    	android:onClick="saveApps"
+    />
+    <Button 
+    	android:text="@string/unsave_apps_button" 
+    	android:layout_width="match_parent" 
+    	android:layout_height="wrap_content"
+    	android:onClick="unsaveApps"
+	/>
     <RelativeLayout 
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content">
-		<Button 
-	    	android:text="@string/save_apps_button" 
-	    	android:id="@+id/button2" 
-	    	android:layout_width="wrap_content" 
-	    	android:layout_height="wrap_content"
-	    	android:layout_alignParentLeft="true"
-			android:onClick="saveApps"
-	    />
-	    <Button 
-	    	android:text="@string/unsave_apps_button" 
-	    	android:id="@+id/button1" 
-	    	android:layout_width="wrap_content" 
-	    	android:layout_height="wrap_content"
-	    	android:layout_alignParentRight="true"
-			android:layout_toLeftOf="@+id/save_apps_button"
-			android:onClick="unsaveApps"
-		/>    
-	</RelativeLayout>
-	<RelativeLayout 
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content">
 		<TextView 
@@ -72,11 +63,9 @@
 	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
 	        android:layout_alignParentBottom="true"
-	        android:background="#FF0000"
 	        ads:adUnitId="a14f230a9cc2981"
 	        ads:adSize="BANNER"
-	        ads:loadAdOnCreate="true"
-	        >
+	        ads:loadAdOnCreate="true">
 	    </com.google.ads.AdView>
 		<ListView 
 		    android:id="@+id/android:list" 

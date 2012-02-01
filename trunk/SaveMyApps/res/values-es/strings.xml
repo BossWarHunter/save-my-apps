@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Copyright 2011 Franco Sabadini
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+   	you may not use this file except in compliance with the License.
+   	You may obtain a copy of the License at
+
+    	http://www.apache.org/licenses/LICENSE-2.0
+
+   	Unless required by applicable law or agreed to in writing, software
+   	distributed under the License is distributed on an "AS IS" BASIS,
+   	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   	See the License for the specific language governing permissions and
+   	limitations under the License.
+-->
+<resources>
+    <string name="app_name">Save My Apps</string>
+    <string name="preferences_label">Configuracion</string>
+    <string name="save_apps_button">Guardar aplicaciones en el Servidor</string>
+	<string name="unsave_apps_button">Borrar aplicaciones del Servidor</string>
+	<string name="select_all">Seleccionar Todas</string>
+	<string name="account_dialog_title">Seleccionar una cuenta de Google</string>
+	
+	<!-- Sync dialogs and toasts -->
+	<string name="con_error_dialog_title">Error de Coneccion</string>
+	<string name="positive_button">OK</string>
+    <string name="con_error_message">
+        No hay coneccion a Internet. Por favor verifique su coneccion e 
+        intente nuevamente.
+    </string>
+	<string name="loading_list_title">
+	    Cargando lista de aplicaciones...Esto puede tardar un rato, 
+	    por favor sea paciente.
+	</string>
+	<string name="sync_start_message">La sincronizacion ha comenzado...</string>
+	<string name="sync_end_message">La sincronizacion ha terminado...</string>
+	
+	<!-- Options menu -->
+	<string name="help">Ayuda</string>
+	<string name="refresh">Recargar Lista</string>
+	<string name="share">Compartir</string>
+	<string name="sort">Ordenar</string>
+	<string name="settings">Configuracion</string>
+	<string name="exit">Cerrar</string>
+	<!-- Help dialog -->
+	<string name="help_dialog_title">Como usar esta aplicacion</string>
+	<string name="help_dialog_text_1">
+	    1- Elegir una cuenta de Google con la cual sincronizar la informacion de sus
+	    aplicaciones (Dicha informacion sera guardada en una lista de tareas llamada
+	    \"SaveMyAppsDefaultList\" en su cuenta, luego puede acceder a esta informacion
+	    ingresando a su cuenta de GMail).\n\n
+	    2- Elegir una aplicacion (o un conjunto de ellas) usando las checkboxs en el
+	    lado derecho de la pantalla.\n\n
+	    3- Presionar uno de los botones en la parte superior, dependiendo de la accion 
+	    que desea realizar.\n\n
+	    * Referencias:
+	</string>
+	<string name="help_dialog_text_2">
+	    \nIndica que la informacion de la aplicacion nombrada a la derecha ya esta
+	    guardada.
+	</string>
+	<string name="help_dialog_text_3">
+	    \nIndica que la informacion de la aplicacion nombrada a la derecha NO esta
+	    guardada.
+	</string>
+	<string name="help_dialog_text_4">
+	    \n* Funcionalidad Extra:\n\n
+	    1- ¿Desea recargar la lista de aplicaciones? No es problema, solo vaya al menu
+	    de opciones y presione \"Recargar Lista\".\n\n
+	    2- ¿Desea compartir 1 o mas aplicaciones con sus amigos? Es muy simple, solo
+	    eliga las aplicaciones cuya informacion quiera compartir, vaya al menu de 
+	    opciones y presione \"Compartir\", luego eliga con que aplicacion desea 
+	    compartir la informacion.\n\n
+	    * Lo que vendra:\n\n
+	    \tTengo varias ideas nuevas para agregar a la aplicacion y las agregare tan 
+	    pronto como pueda.\n\n
+	    * Opiniones y Sugerencias:\n\n
+	    \t Si tienen cualquier sugerencia, queja o idea no duden en contactarme a 
+	    cool.apps.android@gmail.com
+	</string>
+	
+	<!-- Share dialog -->	
+	<string name="share_dialog_title">Compartir usando...</string>
+	<string name="share_subject">Lista de aplicaciones Android</string>
+	<string name="share_body_app_name">Nombre:</string>
+	<string name="share_body_app_pckname">Nombre del paquete:</string>
+	
+	<!-- Sort dialog -->	
+	<string name="sort_dialog_title">Ordenar por...</string>
+	<string-array name="sort_dialog_list">
+	    <item>Nombre de la aplicacion</item>
+	    <item>Estado de guardado (NO guardadas primero)</item>
+	    <item>Estado de guardado (guardadas primero)</item>
+	</string-array>
+	
+	<!-- Settings layout -->
+	<string name="share_pref_title">Configuracion de Compartir</string>
+	<string name="share_pref_labels_key">share_labels</string>
+	<string name="share_pref_labels_title">Usar Etiquetas</string>
+	<string name="share_pref_labels_sum">
+	    Agrega etiquetas a la informacion a compartir (\"Nombre:\", 
+	    \"Nombre del paquete:\", etc.)
+	</string>
+	<string name="share_pref_app_name_key">share_app_name</string>
+	<string name="share_pref_app_name_title">Compartir Nombre</string>
+	<string name="share_pref_app_pckname_key">share_app_pckname</string>
+	<string name="share_pref_app_pckname_title">Compartir Paquete</string>
+	<string name="accounts_pref_title">Configuracion de Cuentas</string>	
+</resources>
