@@ -34,6 +34,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
@@ -54,9 +55,7 @@ public class SaveMyApps extends ListActivity {
 	private static final int CON_ERROR_DIALOG = 1;
 	private static final int HELP_DIALOG = 2;
 	private static final int SORT_DIALOG = 3;
-	public static final int SORT_APP_NAME = 0;
-	public static final int SORT_NOT_SAVED_FIRST = 1;
-	public static final int SORT_SAVED_FIRST = 2;
+	
 	private static final String PREFS_NAME = "SaveMyAppsPrefs";
 	private static final int REQUEST_AUTH = 0;
 	//TODO: change the default list for a specific one
@@ -271,6 +270,16 @@ public class SaveMyApps extends ListActivity {
 		}
 	}
 	
+	public void installApps(View view) {
+		ArrayList<AppInfo> appsList = getCheckedApps();
+		Intent marketIntent = new Intent(Intent.ACTION_VIEW);
+		for (AppInfo appInfo : appsList) {
+			marketIntent.setData(Uri.parse("market://details?id=" + 
+					appInfo.getPackageName()));			
+			startActivity(marketIntent);
+		}		
+	}
+	
 	/**
 	 * Verifies if the "Select All" checkbox is checked or not and update the checkbox 
 	 * state of all the apps on the list according to it.
@@ -365,32 +374,33 @@ public class SaveMyApps extends ListActivity {
 		// Get the user settings to find out what he/she wants to share
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		boolean useLabels = settings.getBoolean(
-				getString(R.string.share_pref_labels_key), false);
+				getString(R.string.share_pref_labels_key), true);
 		boolean shareName = settings.getBoolean(
-				getString(R.string.share_pref_app_name_key), false);
+				getString(R.string.share_pref_app_name_key), true);
 		boolean sharePckName = settings.getBoolean(
-				getString(R.string.share_pref_app_pckname_key), false);
+				getString(R.string.share_pref_app_pckname_key), true);
 		// StringBuilder is used instead of String because it has better
 		// performance when appending a lot of strings
 		StringBuilder stringBuilder = new StringBuilder();
 		for (AppInfo appInfo : appsToShare) {
+			appendShareInfo(shareName, useLabels, stringBuilder, 
+					R.string.share_body_app_name, appInfo.getName());
+			appendShareInfo(sharePckName, useLabels, stringBuilder, 
+					R.string.share_body_app_pckname, appInfo.getPackageName());
 			stringBuilder.append("\n");
-			if (shareName) {
-				stringBuilder.append("\n");
-				if (useLabels) {
-					stringBuilder.append(getString(R.string.share_body_app_name) + " ");	
-				}
-				stringBuilder.append(appInfo.getName());	
-			}
-			if (sharePckName) {
-				stringBuilder.append("\n");
-				if (useLabels) {
-					stringBuilder.append(getString(R.string.share_body_app_pckname) + " ");
-				}
-				stringBuilder.append(appInfo.getPackageName());				
-			}
 		}
 		return stringBuilder.toString();
+	}
+	
+	private void appendShareInfo(boolean shareBool, boolean useLabels, 
+			StringBuilder shareString, int labelId, String shareInfo) {
+		if (shareBool) {
+			shareString.append("\n");
+			if (useLabels) {
+				shareString.append(getString(labelId) + " ");
+			}
+			shareString.append(shareInfo);								
+		}
 	}
 	
 	/**

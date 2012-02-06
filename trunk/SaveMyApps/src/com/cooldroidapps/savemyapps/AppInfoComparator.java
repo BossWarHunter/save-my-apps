@@ -22,12 +22,18 @@ import java.util.Comparator;
 public class AppInfoComparator implements Comparator<AppInfo>, Serializable {
 
 	private static final long serialVersionUID = 1L;
+	
+	private static final int SORT_APP_NAME = 0;
+	private static final int SORT_NOT_SAVED_FIRST = 1;
+	private static final int SORT_SAVED_FIRST = 2;
+	
 	private static AppInfoComparator instance = null;
 	private int comparisonType;
 	
+	
 	private AppInfoComparator() { 
 		// By default the comparison type is by app name
-		comparisonType = SaveMyApps.SORT_APP_NAME;
+		comparisonType = SORT_APP_NAME;
 	}
 	
 	public static synchronized AppInfoComparator getInstance() {
@@ -44,15 +50,15 @@ public class AppInfoComparator implements Comparator<AppInfo>, Serializable {
 	public int compare(AppInfo appInfo1, AppInfo appInfo2) {
 		int compareResult = 0;
 		switch(comparisonType) {
-			case SaveMyApps.SORT_APP_NAME:
+			case SORT_APP_NAME:
 				compareResult = appInfo1.getName().toLowerCase().compareTo(appInfo2.
 						getName().toLowerCase());
 				break;
-			case SaveMyApps.SORT_NOT_SAVED_FIRST:
+			case SORT_NOT_SAVED_FIRST:
 				// The result of the function is inverted (multiplying by -1)
 				compareResult = compareSavedStatus(appInfo1, appInfo2) * -1;
 				break;
-			case SaveMyApps.SORT_SAVED_FIRST:
+			case SORT_SAVED_FIRST:
 				compareResult = compareSavedStatus(appInfo1, appInfo2);
 				break;
 		}
