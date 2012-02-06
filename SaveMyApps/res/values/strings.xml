@@ -15,14 +15,15 @@
    	limitations under the License.
 -->
 <resources>
+    <!-- Main layout -->
     <string name="app_name">Save My Apps</string>
     <string name="preferences_label">Settings</string>
-    <string name="save_apps_button">Save Apps To Server</string>
-	<string name="unsave_apps_button">Remove Apps From Server</string>
+    <string name="save_apps_button">Save Apps</string>
+	<string name="unsave_apps_button">Remove Apps</string>
 	<string name="select_all">Select All</string>
-	<string name="account_dialog_title">Select a Google account</string>
 	
 	<!-- Sync dialogs and toasts -->
+	<string name="account_dialog_title">Select a Google account</string>
 	<string name="con_error_dialog_title">Connection Error</string>
 	<string name="positive_button">OK</string>
     <string name="con_error_message">
@@ -44,25 +45,24 @@
 	<!-- Help dialog -->
 	<string name="help_dialog_title">How to use this app</string>
 	<string name="help_dialog_text_1">
-	    1- Choose a Google account to which synchronize your applications information 
-	    (The apps info will be saved in a new task list called \"SaveMyAppsDefaultList\" 
-	    in your account, you can later access this list on your browser by accessing 
-	    your GMail account).\n\n
-	    2- Choose an app (or a group of them) by checking or un-checking the 
+	    * First you must choose a Google account to which synchronize your applications 
+	    information (The apps info will be saved in a new task list called 
+	    \"SaveMyAppsDefaultList\" in your account, you can later access this list on 
+	    your browser by accessing your GMail account).\n\n
+	    * How to save/delete apps:\n\n
+	    1- Choose an app (or a group of them) by checking or un-checking the 
 	    checkboxes on the right side.\n\n
-	    3- Press the corresponding button (located on the top) to the action you 
-	    want to perform on the chosen apps (\"Save Apps To Server\" or 
-	    \"Remove Apps From Server\", when I say \"server\" I mean your GMail account, 
-	    since that is where the apps information will be saved as mentioned earlier).\n\n
+	    2- Press the corresponding button (located on the top) to the action you 
+	    want to perform on the chosen apps (\"Save Apps\" or \"Remove Apps\").\n\n
 		* References:
 	</string>
 	<string name="help_dialog_text_2">
 	    \nIndicates that the information of the app listed next to it is already 
-	    saved in the server. 
+	    saved in your Google account. 
 	</string>
 	<string name="help_dialog_text_3">
 	    \nIndicates that the information of the app listed next to it is NOT 
-	    saved in the server. 
+	    saved in your Google account. 
 	</string>
 	<string name="help_dialog_text_4">
 	    \n* Extra functionality:\n\n
@@ -90,8 +90,8 @@
 	<string name="sort_dialog_title">Sort by...</string>
 	<string-array name="sort_dialog_list">
 	    <item>App Name</item>
-	    <item>Saved Status (not saved first)</item>
-	    <item>Saved Status (saved first)</item>
+	    <item>Not Saved First</item>
+	    <item>Saved First</item>
 	</string-array>
 	
 	<!-- Settings layout -->
@@ -105,5 +105,7 @@
 	<string name="share_pref_app_name_title">Share App Name</string>
 	<string name="share_pref_app_pckname_key">share_app_pckname</string>
 	<string name="share_pref_app_pckname_title">Share App Package Name</string>
+	<string name="share_pref_app_link_key">share_app_link</string>
+	
 	<string name="accounts_pref_title">Account Settings</string>	
 </resources>

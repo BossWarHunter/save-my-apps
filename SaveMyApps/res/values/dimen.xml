@@ -15,11 +15,11 @@
    	limitations under the License.
 -->
 <resources>	
-	<dimen name="text_size">35px</dimen>
-	<dimen name="checkbox_left_marg">4px</dimen>
-	<dimen name="checkbox_right_marg">10px</dimen>
-	<dimen name="image_width">42px</dimen>
-	<dimen name="image_left_marg">4px</dimen>
-	<dimen name="image_right_marg">8px</dimen>
+	<dimen name="text_size">23sp</dimen>
+	<dimen name="button_text_size">18sp</dimen>
+	<dimen name="checkbox_left_marg">4dp</dimen>
+	<dimen name="checkbox_right_marg">10dp</dimen>
+	<dimen name="image_left_marg">4dp</dimen>
+	<dimen name="image_right_marg">4dp</dimen>
 	<dimen name="help_dialog_padding">10dp</dimen>
 </resources>

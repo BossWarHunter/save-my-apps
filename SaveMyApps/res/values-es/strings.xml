@@ -17,8 +17,8 @@
 <resources>
     <string name="app_name">Save My Apps</string>
     <string name="preferences_label">Configuracion</string>
-    <string name="save_apps_button">Guardar aplicaciones en el Servidor</string>
-	<string name="unsave_apps_button">Borrar aplicaciones del Servidor</string>
+    <string name="save_apps_button">Guardar</string>
+	<string name="unsave_apps_button">Borrar</string>
 	<string name="select_all">Seleccionar Todas</string>
 	<string name="account_dialog_title">Seleccionar una cuenta de Google</string>
 	
@@ -46,13 +46,14 @@
 	<!-- Help dialog -->
 	<string name="help_dialog_title">Como usar esta aplicacion</string>
 	<string name="help_dialog_text_1">
-	    1- Elegir una cuenta de Google con la cual sincronizar la informacion de sus
-	    aplicaciones (Dicha informacion sera guardada en una lista de tareas llamada
-	    \"SaveMyAppsDefaultList\" en su cuenta, luego puede acceder a esta informacion
-	    ingresando a su cuenta de GMail).\n\n
-	    2- Elegir una aplicacion (o un conjunto de ellas) usando las checkboxs en el
+	    * Primero se debe elegir una cuenta de Google con la cual sincronizar la 
+	    informacion de las aplicaciones (dicha informacion sera guardada en una lista 
+	    de tareas llamada \"SaveMyAppsDefaultList\" en su cuenta, luego puede acceder 
+	    a esta informacion ingresando a su cuenta de GMail).\n\n
+	    * Como guardar/borrar/instalar aplicaciones:\n\n
+	    1- Elegir una aplicacion (o un conjunto de ellas) usando las checkboxs en el
 	    lado derecho de la pantalla.\n\n
-	    3- Presionar uno de los botones en la parte superior, dependiendo de la accion 
+	    2- Presionar uno de los botones en la parte superior, dependiendo de la accion 
 	    que desea realizar.\n\n
 	    * Referencias:
 	</string>
@@ -96,15 +97,12 @@
 	
 	<!-- Settings layout -->
 	<string name="share_pref_title">Configuracion de Compartir</string>
-	<string name="share_pref_labels_key">share_labels</string>
 	<string name="share_pref_labels_title">Usar Etiquetas</string>
 	<string name="share_pref_labels_sum">
 	    Agrega etiquetas a la informacion a compartir (\"Nombre:\", 
 	    \"Nombre del paquete:\", etc.)
 	</string>
-	<string name="share_pref_app_name_key">share_app_name</string>
 	<string name="share_pref_app_name_title">Compartir Nombre</string>
-	<string name="share_pref_app_pckname_key">share_app_pckname</string>
 	<string name="share_pref_app_pckname_title">Compartir Paquete</string>
 	<string name="accounts_pref_title">Configuracion de Cuentas</string>	
 </resources>
