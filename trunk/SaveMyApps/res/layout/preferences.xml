@@ -35,6 +35,13 @@
             android:defaultValue="true"
         />
 	</PreferenceCategory>
+	<PreferenceCategory 
+	    android:title="@string/pro_update_pref_title">
+	    <Preference 
+	        android:title="@string/pro_update_pref_button"
+	        android:key="@string/pro_update_pref_button_key"
+	    />
+	</PreferenceCategory>
 	<!-- PreferenceCategory 
 	    android:title="@string/accounts_pref_title">
         

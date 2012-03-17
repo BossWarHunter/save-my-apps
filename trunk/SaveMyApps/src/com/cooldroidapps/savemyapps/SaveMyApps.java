@@ -46,6 +46,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 
 import com.cooldroidapps.savemyapps.AppsSynchronizer.SyncType;
+import com.cooldroidapps.savemyapps.AppInfo;
 import com.google.api.client.googleapis.extensions.android2.auth.GoogleAccountManager;
 
 
@@ -55,8 +56,10 @@ public class SaveMyApps extends ListActivity {
 	private static final int CON_ERROR_DIALOG = 1;
 	private static final int HELP_DIALOG = 2;
 	private static final int SORT_DIALOG = 3;
+	private static final int PRO_UPDATE_DIALOG = 4;
 	
 	private static final String PREFS_NAME = "SaveMyAppsPrefs";
+	private static final String showProUpdateDlgString = "showProUpdateDlg";
 	private static final int REQUEST_AUTH = 0;
 	//TODO: change the default list for a specific one
 	public String DEFAULT_LIST_ID = "";
@@ -110,7 +113,9 @@ public class SaveMyApps extends ListActivity {
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 	    // Get an editor to modify the preferences
 		SharedPreferences.Editor editor = settings.edit();
-	    // Save the chosen account as a shared preference
+        // Get the preference that checks if the pro update dialog must be showed
+	    final boolean showProUpdateDlg = settings.getBoolean(showProUpdateDlgString, true);
+		// Save the chosen account as a shared preference
 		editor.putString("accountName", account.name);
 	    editor.commit();
 	    // Get the authentication token for the requests to the tasks service
@@ -129,6 +134,9 @@ public class SaveMyApps extends ListActivity {
 		            		gTasksManager.setAccessToken(bundle.getString(AccountManager.KEY_AUTHTOKEN));
 		                    // Check if the device is connected to the internet
 		                    loadAppsList();
+		            		if (showProUpdateDlg) {
+		                        showDialog(PRO_UPDATE_DIALOG);		            	    	
+		            	    }
 		            	}						
 					} catch (OperationCanceledException e) {
 						e.printStackTrace();
@@ -219,6 +227,39 @@ public class SaveMyApps extends ListActivity {
 			           }
 			       });
 				break;
+			case PRO_UPDATE_DIALOG:
+				builder.setTitle(R.string.pro_update_dlg_title);
+				builder.setMessage(R.string.pro_update_dlg_msg)
+			       .setCancelable(false)
+			       .setPositiveButton(R.string.pro_update_dlg_pos_button, 
+			    		   new DialogInterface.OnClickListener() {
+			           public void onClick(DialogInterface dialog, int id) {
+			       			Intent marketIntent = new Intent(Intent.ACTION_VIEW);
+			    			marketIntent.setData(Uri.parse(
+			    					getString(R.string.pro_version_url)));			
+			    			startActivity(marketIntent);
+			           }
+			       }).setNegativeButton(R.string.pro_update_dlg_neg_button, 
+			    		   new DialogInterface.OnClickListener() {
+			           public void onClick(DialogInterface dialog, int id) {
+			        	   dialog.dismiss();
+			           }
+			       }).setNeutralButton(R.string.pro_update_dlg_neutral_button, 
+			    		   new DialogInterface.OnClickListener() {
+							@Override
+						public void onClick(DialogInterface dialog, int which) {
+							// Get the shared preferences
+							SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+							// Get an editor to modify the preferences
+							SharedPreferences.Editor editor = settings.edit();
+						    // Change to false the preference that checks if the
+							// pro update dialog must be showed when the app starts
+							editor.putBoolean(showProUpdateDlgString, false);
+							editor.commit();
+							dialog.dismiss();
+						}
+					});
+				break;
 		}
 		return builder.create();
 	}
@@ -268,16 +309,6 @@ public class SaveMyApps extends ListActivity {
 			AppsSynchronizer syncThread = new AppsSynchronizer(this, SyncType.UNSAVE);
 			syncThread.execute(appsToUnsave);
 		}
-	}
-	
-	public void installApps(View view) {
-		ArrayList<AppInfo> appsList = getCheckedApps();
-		Intent marketIntent = new Intent(Intent.ACTION_VIEW);
-		for (AppInfo appInfo : appsList) {
-			marketIntent.setData(Uri.parse("market://details?id=" + 
-					appInfo.getPackageName()));			
-			startActivity(marketIntent);
-		}		
 	}
 	
 	/**
