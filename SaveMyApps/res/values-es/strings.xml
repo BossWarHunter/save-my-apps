@@ -95,6 +95,21 @@
 	    <item>Estado de guardado (guardadas primero)</item>
 	</string-array>
 	
+	<!-- Pro version update dialog -->
+	<string name="pro_update_dlg_title">Instalar version PRO</string>
+	<string name="pro_update_dlg_msg">
+	    Actualiza a la version PRO AHORA y disfruta de toda la funcionalidad
+	    extra :-).
+	    \n\n- Instala y desinstala varias aplicaciones con solo 2 clics.
+	    \n- Comparti links de instalacion con tus amigos por medio de 
+	    facebook, SMS, email, etc.\n\n
+	    No encontraras una forma mas facil y rapida de manejar todas 
+	    tus aplicacion entre tus dispositivos...
+	</string>
+	<string name="pro_update_dlg_pos_button">Actualizar AHORA</string>
+	<string name="pro_update_dlg_neg_button">Recordarme Luego</string>
+	<string name="pro_update_dlg_neutral_button">No Mostrar Nuevamente</string>
+	
 	<!-- Settings layout -->
 	<string name="share_pref_title">Configuracion de Compartir</string>
 	<string name="share_pref_labels_title">Usar Etiquetas</string>
@@ -104,5 +119,8 @@
 	</string>
 	<string name="share_pref_app_name_title">Compartir Nombre</string>
 	<string name="share_pref_app_pckname_title">Compartir Paquete</string>
+	<string name="pro_update_pref_title">Configuracion de la version Pro</string>	
+	<string name="pro_update_pref_button">Instalar la Version PRO Ahora</string>	
+	
 	<string name="accounts_pref_title">Configuracion de Cuentas</string>	
 </resources>
